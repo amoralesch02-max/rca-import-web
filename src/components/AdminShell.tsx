@@ -23,6 +23,7 @@ import {
   Tags,
   Wallet,
   X,
+  PackageCheck,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -70,6 +71,12 @@ const adminLinks = [
     description: "Validación Yape",
   },
   {
+  label: "Entregas",
+  href: "/admin/entregas",
+  icon: PackageCheck,
+  description: "Entregas relizadas",
+},
+  {
     label: "Banners",
     href: "/admin/banners",
     icon: ImageIcon,
@@ -81,6 +88,7 @@ const adminLinks = [
     icon: Settings,
     description: "Datos de tienda",
   },
+  
 ];
 
 function isActivePath(pathname: string, href: string) {

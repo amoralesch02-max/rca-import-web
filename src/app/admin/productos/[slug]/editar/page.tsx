@@ -1145,7 +1145,7 @@ export default function EditProductPage() {
             </p>
 
             <h2 className="mt-3 text-3xl font-black">
-              Características y variantes
+              Características y colores
             </h2>
           </div>
 
@@ -1175,7 +1175,7 @@ export default function EditProductPage() {
             <div>
               <div className="flex items-center justify-between gap-3">
                 <label className="text-sm font-black text-slate-700">
-                  Variantes
+                  Colores disponibles
                 </label>
 
                 <span className="rounded-full bg-blue-50 px-3 py-2 text-xs font-black text-[#0057A8]">
@@ -1189,7 +1189,7 @@ export default function EditProductPage() {
                   setForm({ ...form, variantsText: event.target.value })
                 }
                 rows={7}
-                placeholder={"Una por línea\nNatural Titanium\nBlack Titanium"}
+                placeholder={"Un color por línea\nNatural Titanium\nBlack Titanium\nBlue Titanium"}
                 className="mt-2 w-full resize-none rounded-2xl border border-slate-200 bg-[#f6f8fc] px-4 py-4 text-sm font-semibold outline-none transition focus:border-[#0057A8] focus:bg-white"
               />
             </div>

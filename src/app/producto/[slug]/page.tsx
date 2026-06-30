@@ -492,7 +492,7 @@ export default function ProductDetailPage() {
               <div className="mt-7">
                 <p className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.22em] text-[#0057A8]">
                   <Layers size={17} />
-                  Variantes disponibles
+                  Colores disponibles
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2">

@@ -91,6 +91,54 @@ function getStoredCart() {
   }
 }
 
+async function sendReservationEmail({
+  reservation,
+  amountPaidNumber,
+  pendingAmount,
+}: {
+  reservation: Reservation;
+  amountPaidNumber: number;
+  pendingAmount: number;
+}) {
+  try {
+    const response = await fetch("/api/reservation-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        reservationCode: reservation.id,
+        customerName: reservation.customerName,
+        customerPhone: reservation.phone,
+        customerEmail: "",
+        customerDni: reservation.documentNumber,
+        deliveryMethod: reservation.operationType,
+        deliveryAddress: reservation.address,
+        city: `${reservation.department} - ${reservation.city}`,
+        paymentMethod: reservation.paymentMethod,
+        amountPaid: amountPaidNumber,
+        pendingAmount,
+        total: reservation.total,
+        paymentProofUrl: reservation.paymentProofUrl,
+        createdAt: reservation.createdAt,
+        items: reservation.cart.map((item) => ({
+          name: item.name,
+          variant: item.variant,
+          color: item.variant,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("No se pudo enviar el correo de reserva.");
+    }
+  } catch (error) {
+    console.error("Error enviando correo de reserva:", error);
+  }
+}
+
 export default function ReservationPage() {
   const router = useRouter();
 
@@ -141,6 +189,21 @@ export default function ReservationPage() {
   const totalUnits = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.quantity, 0);
   }, [cart]);
+
+  const hasIphoneInCart = useMemo(() => {
+    return cart.some((item) => {
+      const name = item.name.toLowerCase();
+      const slug = item.slug.toLowerCase();
+
+      return name.includes("iphone") || slug.includes("iphone");
+    });
+  }, [cart]);
+
+  const minimumReservationAmount = hasIphoneInCart ? 50 : 20;
+
+  const minimumReservationMessage = hasIphoneInCart
+    ? "Tu reserva incluye un iPhone. El monto mínimo de separación es S/ 50."
+    : "El monto mínimo de separación para estos productos es S/ 20.";
 
   const amountPaidNumber = Number(form.amountPaid || 0);
   const pendingAmount = Math.max(total - amountPaidNumber, 0);
@@ -241,6 +304,13 @@ export default function ReservationPage() {
       return;
     }
 
+        if (amountPaidNumber < minimumReservationAmount) {
+      setErrorMessage(
+        `El monto mínimo de separación es S/ ${minimumReservationAmount}.`
+      );
+      return;
+    }
+
     setSubmitting(true);
     setUploadingProof(true);
 
@@ -297,13 +367,19 @@ export default function ReservationPage() {
       cart: newReservation.cart,
     });
 
-    if (!result.success) {
+       if (!result.success) {
       setSubmitting(false);
       setErrorMessage(
         "No se pudo guardar la reserva en Supabase. Revisa los permisos o intenta nuevamente."
       );
       return;
     }
+
+    await sendReservationEmail({
+      reservation: newReservation,
+      amountPaidNumber,
+      pendingAmount,
+    });
 
     const storedReservations = localStorage.getItem(RESERVATIONS_KEY);
     const currentReservations = storedReservations
@@ -540,21 +616,27 @@ export default function ReservationPage() {
                           S/
                         </span>
 
-                        <input
+                                                <input
                           value={form.amountPaid}
                           onChange={(event) =>
                             setForm({ ...form, amountPaid: event.target.value })
                           }
                           type="number"
-                          min="1"
+                          min={minimumReservationAmount}
                           className="h-full w-full bg-transparent text-sm font-semibold outline-none placeholder:text-slate-400"
-                          placeholder="Ejemplo: 100"
+                          placeholder={`Ejemplo: ${minimumReservationAmount}`}
                         />
                       </div>
 
-                      <p className="mt-2 text-xs font-semibold text-slate-500">
-                        Saldo aproximado pendiente: S/ {pendingAmount}
-                      </p>
+                                            <div className="mt-2 grid gap-1">
+                        <p className="text-xs font-black text-[#E31B23]">
+                          {minimumReservationMessage}
+                        </p>
+
+                        <p className="text-xs font-semibold text-slate-500">
+                          Saldo aproximado pendiente: S/ {pendingAmount}
+                        </p>
+                      </div>
                     </div>
 
                     <div>
@@ -677,7 +759,7 @@ export default function ReservationPage() {
                           <p className="truncate font-black">{item.name}</p>
 
                           <p className="mt-1 text-sm font-semibold text-slate-500">
-                            {item.variant || "Única presentación"} · Cantidad:{" "}
+                                                        Color: {item.variant || "Color único"} · Cantidad:{" "}
                             {item.quantity}
                           </p>
 

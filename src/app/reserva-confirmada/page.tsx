@@ -360,8 +360,8 @@ export default function ReservationConfirmedPage() {
                         <p className="font-black">{item.productName}</p>
 
                         <p className="mt-1 text-sm font-semibold text-slate-500">
-                          {item.variant || "Sin variante"} · Cantidad:{" "}
-                          {item.quantity}
+                          Color: {item.variant || "Color único"} · Cantidad:{" "}
+{item.quantity}
                         </p>
 
                         <p className="mt-2 font-black text-[#0057A8]">

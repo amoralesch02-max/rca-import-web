@@ -110,6 +110,13 @@ export default function ContactPage() {
     );
   }, [settings.whatsappSecondary]);
 
+    const learnImportUrl = useMemo(() => {
+    return getWhatsappUrl(
+      settings.whatsappMain,
+      "Hola, estoy interesado en aprender a importar con RCA IMPORT. ¿Podrías brindarme más información?"
+    );
+  }, [settings.whatsappMain]);
+
   const mapsUrl = useMemo(() => {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       settings.address
@@ -361,6 +368,74 @@ export default function ContactPage() {
             title="Pagos verificados"
             text={settings.paymentMessage}
           />
+        </section>
+
+                <section className="mt-8 overflow-hidden rounded-[2.5rem] bg-slate-950 p-7 text-white shadow-xl shadow-slate-200 md:p-10">
+          <div className="grid gap-8 lg:grid-cols-[1fr_0.42fr] lg:items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-blue-200">
+                <Sparkles size={16} />
+                Aprende con RCA IMPORT
+              </div>
+
+              <h2 className="mt-5 max-w-3xl text-4xl font-black leading-tight md:text-5xl">
+                ¿Te interesa importar? Aprende conmigo.
+              </h2>
+
+              <p className="mt-5 max-w-2xl text-sm font-semibold leading-7 text-slate-300 md:text-base">
+                Si quieres conocer cómo empezar a importar productos, resolver
+                dudas sobre proveedores, compras, envíos o procesos básicos,
+                puedes escribirme para recibir más información.
+              </p>
+
+              <div className="mt-7 flex flex-wrap gap-3">
+                <a
+                  href={learnImportUrl}
+                  target="_blank"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#E31B23] px-6 py-4 text-sm font-black text-white shadow-lg shadow-red-950/30 transition hover:bg-red-700"
+                >
+                  <MessageCircle size={18} />
+                  Quiero aprender a importar
+                </a>
+
+                <Link
+                  href="/catalogo"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-4 text-sm font-black text-slate-950 transition hover:bg-slate-100"
+                >
+                  Ver productos
+                  <ChevronRight size={18} />
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-3">
+              <div className="rounded-[1.7rem] border border-white/10 bg-white/10 p-5">
+                <ShieldCheck className="text-blue-300" size={28} />
+
+                <h3 className="mt-4 text-xl font-black">
+                  Orientación inicial
+                </h3>
+
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-300">
+                  Aprende los puntos básicos para iniciar con más seguridad y
+                  evitar errores comunes.
+                </p>
+              </div>
+
+              <div className="rounded-[1.7rem] border border-white/10 bg-white/10 p-5">
+                <PackageSearch className="text-blue-300" size={28} />
+
+                <h3 className="mt-4 text-xl font-black">
+                  Productos y proveedores
+                </h3>
+
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-300">
+                  Consulta sobre categorías, búsqueda de productos y
+                  recomendaciones para importar.
+                </p>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.75fr]">

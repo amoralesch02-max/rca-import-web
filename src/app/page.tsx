@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import CustomerDeliveriesSection from "@/components/CustomerDeliveriesSection";
 
 export default function HomePage() {
   const [banners, setBanners] = useState<PublicBanner[]>([]);
@@ -246,12 +247,12 @@ export default function HomePage() {
               <p className="text-sm font-black uppercase tracking-[0.25em] text-[#E31B23]">
                 Productos destacados
               </p>
-
+              
               <h2 className="mt-3 text-4xl font-black">
                 Selección principal de RCA IMPORT
               </h2>
             </div>
-
+            
             <Link
               href="/catalogo"
               className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
@@ -284,6 +285,8 @@ export default function HomePage() {
           )}
         </section>
 
+          <CustomerDeliveriesSection />
+          
         <section className="mt-12 grid gap-6 lg:grid-cols-[0.8fr_1fr]">
           <div className="rounded-[2.5rem] bg-slate-950 p-8 text-white shadow-xl shadow-slate-200">
             <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-blue-200">

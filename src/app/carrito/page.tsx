@@ -133,7 +133,7 @@ export default function CartPage() {
         ? `Hola RCA IMPORT, quiero consultar por mi carrito:\n\n${cart
             .map(
               (item) =>
-                `- ${item.name} | Variante: ${item.variant} | Cantidad: ${item.quantity} | Precio: S/ ${item.price}`
+                `- ${item.name} | Color: ${item.variant || "Color único"} | Cantidad: ${item.quantity} | Precio: S/ ${item.price}`
             )
             .join(
               "\n"
@@ -180,7 +180,7 @@ export default function CartPage() {
               </h1>
 
               <p className="mt-5 max-w-2xl text-sm font-semibold leading-7 text-slate-300 md:text-base">
-                Confirma cantidades, variantes y total aproximado. Luego puedes
+                Confirma cantidades, colores y total aproximado. Luego puedes
                 separar con adelanto o consultar por WhatsApp.
               </p>
 
@@ -273,7 +273,7 @@ export default function CartPage() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap gap-2">
                         <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-[#0057A8]">
-                          {item.variant || "Única presentación"}
+                          {item.variant || "Color único"}
                         </span>
 
                         <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">

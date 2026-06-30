@@ -43,12 +43,12 @@ export default function ProductPurchaseActions({
   const [settings, setSettings] =
     useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
 
-  const productVariants =
+  const productColors =
     product.variants && product.variants.length > 0
       ? product.variants
-      : ["Única presentación"];
+      : ["Color único"];
 
-  const [selectedVariant, setSelectedVariant] = useState(productVariants[0]);
+  const [selectedColor, setSelectedColor] = useState(productColors[0]);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
@@ -69,16 +69,16 @@ export default function ProductPurchaseActions({
   }, []);
 
   useEffect(() => {
-    setSelectedVariant(productVariants[0]);
+    setSelectedColor(productColors[0]);
     setQuantity(1);
   }, [product.slug]);
 
   const whatsappUrl = useMemo(() => {
     return getWhatsappUrl(
       settings.whatsappMain,
-      `Hola RCA IMPORT, estoy interesado en el producto ${product.name}. Variante: ${selectedVariant}. Cantidad: ${quantity}. Quiero consultar disponibilidad, separación y envío.`
+      `Hola RCA IMPORT, estoy interesado en el producto ${product.name}. Color: ${selectedColor}. Cantidad: ${quantity}. Quiero consultar disponibilidad, separación y envío.`
     );
-  }, [settings.whatsappMain, product.name, selectedVariant, quantity]);
+  }, [settings.whatsappMain, product.name, selectedColor, quantity]);
 
   function addToCart() {
     if (!canBuy) {
@@ -89,8 +89,7 @@ export default function ProductPurchaseActions({
     const cart: CartItem[] = currentCart ? JSON.parse(currentCart) : [];
 
     const existingItem = cart.find(
-      (item) =>
-        item.productId === product.id && item.variant === selectedVariant
+      (item) => item.productId === product.id && item.variant === selectedColor
     );
 
     if (existingItem) {
@@ -101,7 +100,7 @@ export default function ProductPurchaseActions({
         slug: product.slug,
         name: product.name,
         price: finalPrice,
-        variant: selectedVariant,
+        variant: selectedColor,
         quantity,
       });
     }
@@ -135,7 +134,7 @@ export default function ProductPurchaseActions({
       <div>
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-200">
-            Variante
+            Color
           </p>
 
           <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-black text-slate-300">
@@ -144,18 +143,18 @@ export default function ProductPurchaseActions({
         </div>
 
         <div className="mt-4 flex flex-wrap gap-3">
-          {productVariants.map((variant) => (
+          {productColors.map((color) => (
             <button
-              key={variant}
+              key={color}
               type="button"
-              onClick={() => setSelectedVariant(variant)}
+              onClick={() => setSelectedColor(color)}
               className={`rounded-full border px-4 py-3 text-sm font-black transition ${
-                selectedVariant === variant
+                selectedColor === color
                   ? "border-[#0057A8] bg-[#0057A8] text-white shadow-lg shadow-blue-950/30"
                   : "border-white/10 bg-white/10 text-slate-200 hover:border-blue-300 hover:bg-white hover:text-slate-950"
               }`}
             >
-              {variant}
+              {color}
             </button>
           ))}
         </div>
