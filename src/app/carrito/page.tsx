@@ -1,6 +1,7 @@
 "use client";
 
 import ConfirmModal from "@/components/ConfirmModal";
+import ProductImage from "@/components/ProductImage";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import {
@@ -8,6 +9,7 @@ import {
   getWhatsappUrl,
   type StoreSettings,
 } from "@/lib/store-settings";
+import { getSupabaseProducts } from "@/lib/supabase-products";
 import { getSupabaseStoreSettings } from "@/lib/supabase-settings";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -15,18 +17,15 @@ import {
   ArrowLeft,
   BadgeCheck,
   ChevronRight,
-  MessageCircle,
   Minus,
   PackageCheck,
   Plus,
   ShieldCheck,
   ShoppingBag,
-  Sparkles,
   Trash2,
   Truck,
-  Wallet,
-  X,
 } from "lucide-react";
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 
 type CartItem = {
   productId: number;
@@ -35,6 +34,7 @@ type CartItem = {
   price: number;
   variant: string;
   quantity: number;
+  image?: string;
 };
 
 const CART_KEY = "rca_import_cart";
@@ -62,6 +62,7 @@ export default function CartPage() {
     useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
 
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [images, setImages] = useState<Record<string, string>>({});
   const [clearModalOpen, setClearModalOpen] = useState(false);
 
   useEffect(() => {
@@ -70,7 +71,22 @@ export default function CartPage() {
       setSettings(supabaseSettings);
     }
 
+    // El carrito guardado no incluye fotos: se buscan por slug
+    async function loadImages() {
+      const products = await getSupabaseProducts();
+      const map: Record<string, string> = {};
+
+      products.forEach((product) => {
+        if (product.imageUrl) {
+          map[product.slug] = product.imageUrl;
+        }
+      });
+
+      setImages(map);
+    }
+
     loadSettings();
+    loadImages();
     setCart(getStoredCart());
   }, []);
 
@@ -137,305 +153,256 @@ export default function CartPage() {
             )
             .join(
               "\n"
-            )}\n\nTotal aproximado: S/ ${total}\n\nQuiero coordinar compra, separación y envío.`
+            )}\n\nTotal aproximado: S/ ${total}\n\nQuiero coordinar la compra y el envío.`
         : "Hola RCA IMPORT, vengo de la web y quiero consultar productos disponibles.";
 
     return getWhatsappUrl(settings.whatsappMain, message);
   }, [settings.whatsappMain, cart, total]);
 
   return (
-    <main className="min-h-screen bg-[#f6f8fc] text-slate-950">
+    <main className="min-h-screen bg-bg text-slate-950">
       <SiteHeader />
 
       <section className="mx-auto max-w-7xl px-5 py-8 md:px-6 md:py-10">
-        <div className="mb-6 flex flex-wrap items-center gap-2 text-sm font-bold text-slate-500">
-          <Link href="/" className="transition hover:text-[#0057A8]">
+        {/* Migas de pan */}
+        <nav className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+          <Link href="/" className="transition hover:text-brand">
             Inicio
           </Link>
 
-          <ChevronRight size={15} className="text-slate-300" />
+          <ChevronRight size={13} className="text-slate-300" />
 
-          <Link href="/catalogo" className="transition hover:text-[#0057A8]">
+          <Link href="/catalogo" className="transition hover:text-brand">
             Catálogo
           </Link>
 
-          <ChevronRight size={15} className="text-slate-300" />
+          <ChevronRight size={13} className="text-slate-300" />
 
-          <span className="text-slate-950">Carrito</span>
-        </div>
+          <span className="text-slate-700">Carrito</span>
+        </nav>
 
-        <section className="relative overflow-hidden rounded-[2.5rem] bg-slate-950 p-7 text-white shadow-2xl shadow-slate-300 md:p-12">
-          <div className="absolute right-[-150px] top-[-170px] h-96 w-96 rounded-full bg-[#0057A8]/30 blur-3xl" />
-          <div className="absolute bottom-[-200px] left-[-130px] h-96 w-96 rounded-full bg-[#E31B23]/25 blur-3xl" />
+        <h1 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">
+          Tu carrito
+        </h1>
 
-          <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_0.42fr] lg:items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-blue-200">
-                <ShoppingBag size={16} />
-                Carrito RCA IMPORT
-              </div>
-
-              <h1 className="mt-6 max-w-4xl text-4xl font-black leading-tight md:text-6xl">
-                Revisa tu selección antes de separar.
-              </h1>
-
-              <p className="mt-5 max-w-2xl text-sm font-semibold leading-7 text-slate-300 md:text-base">
-                Confirma cantidades, colores y total aproximado. Luego puedes
-                separar con adelanto o consultar por WhatsApp.
-              </p>
-
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Link
-                  href="/catalogo"
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-4 text-sm font-black text-slate-950 transition hover:bg-slate-100"
-                >
-                  <ArrowLeft size={18} />
-                  Seguir comprando
-                </Link>
-
-                {cart.length > 0 && (
-                  <Link
-                    href="/separar"
-                    className="inline-flex items-center gap-2 rounded-full bg-[#E31B23] px-6 py-4 text-sm font-black text-white shadow-lg shadow-red-950/20 transition hover:bg-red-700"
-                  >
-                    <Wallet size={18} />
-                    Separar ahora
-                  </Link>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <SummaryMiniCard label="Productos" value={cart.length} />
-              <SummaryMiniCard label="Unidades" value={totalUnits} />
-              <SummaryMiniCard label="Total" value={`S/ ${total}`} large />
-              <SummaryMiniCard label="Proceso" value="Manual" />
-            </div>
-          </div>
-        </section>
+        {cart.length > 0 && (
+          <p className="mt-1 text-sm text-slate-500">
+            {cart.length} {cart.length === 1 ? "producto" : "productos"} ·{" "}
+            {totalUnits} {totalUnits === 1 ? "unidad" : "unidades"}
+          </p>
+        )}
 
         {cart.length === 0 ? (
-          <section className="mt-8 overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white shadow-sm">
-            <div className="bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_35%),radial-gradient(circle_at_bottom_right,#fee2e2,transparent_35%)] p-10 text-center">
-              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-[2rem] bg-slate-950 text-white shadow-2xl shadow-slate-300">
-                <ShoppingBag size={52} />
-              </div>
-
-              <h2 className="mt-6 text-3xl font-black">
-                Tu carrito está vacío
-              </h2>
-
-              <p className="mx-auto mt-3 max-w-xl text-sm font-semibold leading-7 text-slate-500">
-                Agrega productos desde el catálogo para poder separar, consultar
-                stock o coordinar envío con RCA IMPORT.
-              </p>
-
-              <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-                <Link
-                  href="/catalogo"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0057A8] px-7 py-4 text-sm font-black text-white transition hover:bg-blue-700"
-                >
-                  Ver catálogo
-                  <ChevronRight size={18} />
-                </Link>
-
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-7 py-4 text-sm font-black text-white transition hover:bg-slate-800"
-                >
-                  <MessageCircle size={18} />
-                  Consultar por WhatsApp
-                </a>
-              </div>
+          /* ================= CARRITO VACÍO ================= */
+          <div className="mt-8 rounded-2xl border border-line bg-white p-10 text-center md:p-16">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-brand">
+              <ShoppingBag size={36} />
             </div>
-          </section>
+
+            <h2 className="mt-6 text-2xl font-bold">Tu carrito está vacío</h2>
+
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+              Agrega productos desde el catálogo para armar tu pedido y
+              consultarlo por WhatsApp con RCA IMPORT.
+            </p>
+
+            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link
+                href="/catalogo"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand px-8 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition hover:bg-brand-hover"
+              >
+                Ver catálogo
+                <ChevronRight size={16} />
+              </Link>
+
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-green-600 px-8 text-sm font-semibold text-green-700 transition hover:bg-green-50"
+              >
+                <WhatsAppIcon size={17} />
+                Consultar por WhatsApp
+              </a>
+            </div>
+          </div>
         ) : (
-          <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.38fr]">
-            <div className="space-y-4">
-              {cart.map((item, index) => (
-                <article
-                  key={`${item.productId}-${item.variant}`}
-                  className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-slate-200"
-                >
-                  <div className="grid gap-5 p-5 md:grid-cols-[130px_1fr_auto] md:items-center">
+          <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_380px] lg:items-start">
+            {/* ================= PRODUCTOS ================= */}
+            <div>
+              <ul className="grid gap-4">
+                {cart.map((item) => (
+                  <li
+                    key={`${item.productId}-${item.variant}`}
+                    className="flex gap-4 rounded-2xl border border-line bg-white p-4 md:gap-5 md:p-5"
+                  >
                     <Link
                       href={`/producto/${item.slug}`}
-                      className="relative flex h-32 items-center justify-center overflow-hidden rounded-[1.7rem] bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_45%),radial-gradient(circle_at_bottom_right,#fee2e2,transparent_45%)]"
+                      className="block h-24 w-24 shrink-0 overflow-hidden rounded-xl md:h-28 md:w-28"
                     >
-                      <div className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-xs font-black text-slate-700 shadow-sm">
-                        #{index + 1}
-                      </div>
-
-                      <ShoppingBag className="text-slate-800" size={50} />
+                      <ProductImage
+                        src={item.image || images[item.slug]}
+                        alt={item.name}
+                        sizes="112px"
+                        className="h-full w-full"
+                      />
                     </Link>
 
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap gap-2">
-                        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-[#0057A8]">
-                          {item.variant || "Color único"}
-                        </span>
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <Link
+                            href={`/producto/${item.slug}`}
+                            className="line-clamp-2 text-base font-semibold leading-snug transition hover:text-brand md:text-lg"
+                          >
+                            {item.name}
+                          </Link>
 
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
-                          S/ {item.price} c/u
-                        </span>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <span className="rounded-md bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-brand">
+                              {item.variant || "Color único"}
+                            </span>
+
+                            <span className="rounded-md bg-bg px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                              S/ {item.price} c/u
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.productId, item.variant)}
+                          aria-label={`Eliminar ${item.name}`}
+                          className="shrink-0 rounded-full p-2 text-slate-400 transition hover:bg-red-50 hover:text-alert"
+                        >
+                          <Trash2 size={18} />
+                        </button>
                       </div>
 
-                      <Link
-                        href={`/producto/${item.slug}`}
-                        className="mt-3 block text-2xl font-black leading-tight text-slate-950 transition hover:text-[#0057A8]"
-                      >
-                        {item.name}
-                      </Link>
+                      <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-4">
+                        <div className="flex items-center rounded-full border border-line bg-white">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              decreaseItem(item.productId, item.variant)
+                            }
+                            disabled={item.quantity <= 1}
+                            aria-label="Disminuir cantidad"
+                            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-bg disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <Minus size={16} />
+                          </button>
 
-                      <p className="mt-2 text-sm font-semibold text-slate-500">
-                        Subtotal del producto:
-                        <span className="ml-2 font-black text-[#E31B23]">
+                          <span className="min-w-10 text-center text-base font-semibold">
+                            {item.quantity}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              increaseItem(item.productId, item.variant)
+                            }
+                            aria-label="Aumentar cantidad"
+                            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-bg"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
+
+                        <p className="text-xl font-bold">
                           S/ {item.price * item.quantity}
-                        </span>
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3 md:justify-end">
-                      <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-[#f6f8fc] p-1.5">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            decreaseItem(item.productId, item.variant)
-                          }
-                          disabled={item.quantity <= 1}
-                          className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm transition hover:bg-slate-950 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          <Minus size={17} />
-                        </button>
-
-                        <span className="flex h-10 min-w-12 items-center justify-center rounded-full px-3 text-lg font-black text-slate-950">
-                          {item.quantity}
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            increaseItem(item.productId, item.variant)
-                          }
-                          className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0057A8] text-white shadow-sm transition hover:bg-blue-700"
-                        >
-                          <Plus size={17} />
-                        </button>
+                        </p>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={() => removeItem(item.productId, item.variant)}
-                        className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-[#E31B23] transition hover:bg-[#E31B23] hover:text-white"
-                        aria-label="Eliminar producto"
-                      >
-                        <Trash2 size={18} />
-                      </button>
                     </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+                  </li>
+                ))}
+              </ul>
 
-            <aside className="h-fit rounded-[2.2rem] border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-32">
-              <div className="rounded-[1.7rem] bg-slate-950 p-6 text-white">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-blue-300">
-                    <Wallet size={24} />
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-200">
-                      Resumen
-                    </p>
-
-                    <h2 className="mt-1 text-2xl font-black">Tu pedido</h2>
-                  </div>
-                </div>
-
-                <div className="mt-6 space-y-4 text-sm font-semibold text-slate-300">
-                  <div className="flex justify-between gap-3">
-                    <span>Productos diferentes</span>
-                    <span className="font-black text-white">{cart.length}</span>
-                  </div>
-
-                  <div className="flex justify-between gap-3">
-                    <span>Total unidades</span>
-                    <span className="font-black text-white">{totalUnits}</span>
-                  </div>
-
-                  <div className="border-t border-white/10 pt-5">
-                    <div className="flex items-end justify-between gap-3">
-                      <span className="font-black text-white">
-                        Total aproximado
-                      </span>
-
-                      <span className="text-4xl font-black text-white">
-                        S/ {total}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-5 grid gap-3">
-                <Link
-                  href="/separar"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#E31B23] px-5 py-4 text-center text-sm font-black text-white shadow-lg shadow-red-100 transition hover:bg-red-700"
-                >
-                  <Wallet size={18} />
-                  Separar con adelanto
-                </Link>
-
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0057A8] px-5 py-4 text-center text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700"
-                >
-                  <MessageCircle size={18} />
-                  Consultar por WhatsApp
-                </a>
-
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
                 <Link
                   href="/catalogo"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-100 px-5 py-4 text-center text-sm font-black text-slate-700 transition hover:bg-slate-200"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-brand transition hover:text-brand-hover"
                 >
-                  <ArrowLeft size={18} />
+                  <ArrowLeft size={16} />
                   Seguir comprando
                 </Link>
 
                 <button
                   type="button"
                   onClick={() => setClearModalOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-center text-sm font-black text-[#E31B23] transition hover:bg-[#E31B23] hover:text-white"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-alert"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={15} />
                   Vaciar carrito
                 </button>
               </div>
+            </div>
 
-              <div className="mt-5 rounded-[1.5rem] bg-[#f6f8fc] p-5">
-                <div className="flex gap-3">
-                  <ShieldCheck className="shrink-0 text-[#0057A8]" />
+            {/* ================= RESUMEN ================= */}
+            <aside className="rounded-2xl border border-line bg-white p-6 lg:sticky lg:top-28">
+              <h2 className="text-lg font-bold">Resumen del pedido</h2>
 
-                  <p className="text-xs font-semibold leading-6 text-slate-500">
-                    El total es referencial. El envío, disponibilidad final y la
-                    separación se coordinan con RCA IMPORT por WhatsApp.
-                  </p>
+              <div className="mt-5 grid gap-3 text-sm text-slate-600">
+                <div className="flex justify-between gap-3">
+                  <span>Productos diferentes</span>
+                  <span className="font-semibold text-slate-950">
+                    {cart.length}
+                  </span>
+                </div>
+
+                <div className="flex justify-between gap-3">
+                  <span>Total de unidades</span>
+                  <span className="font-semibold text-slate-950">
+                    {totalUnits}
+                  </span>
                 </div>
               </div>
+
+              <div className="mt-5 flex items-end justify-between gap-3 border-t border-line pt-5">
+                <span className="text-sm font-semibold">Total aproximado</span>
+                <span className="text-3xl font-bold">S/ {total}</span>
+              </div>
+
+              <div className="mt-6 grid gap-3">
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-green-500 text-sm font-semibold text-white shadow-lg shadow-green-200 transition hover:bg-green-600"
+                >
+                  <WhatsAppIcon size={17} />
+                  Consultar por WhatsApp
+                </a>
+
+                <Link
+                  href="/catalogo"
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-line text-sm font-semibold text-slate-700 transition hover:border-brand hover:text-brand"
+                >
+                  Seguir comprando
+                </Link>
+              </div>
+
+              <div className="mt-5 flex gap-3 rounded-xl bg-blue-50 p-4">
+                <ShieldCheck className="mt-0.5 shrink-0 text-brand" size={18} />
+
+                <p className="text-xs leading-5 text-slate-600">
+                  El total es referencial. La disponibilidad final, el pago y
+                  el envío se coordinan con RCA IMPORT por WhatsApp. Al
+                  consultar, se enviará tu pedido ya armado.
+                </p>
+              </div>
             </aside>
-          </section>
+          </div>
         )}
 
+        {/* ================= GARANTÍAS ================= */}
         {cart.length > 0 && (
-          <section className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
             {[
               {
                 icon: BadgeCheck,
-                title: "Reserva validada",
-                text: "Tu separación quedará pendiente hasta validar el comprobante de pago.",
+                title: "Pedido listo para consultar",
+                text: "Al pulsar WhatsApp enviamos tu lista de productos, colores y cantidades.",
               },
               {
                 icon: Truck,
@@ -445,29 +412,27 @@ export default function CartPage() {
               {
                 icon: PackageCheck,
                 title: "Stock actualizado",
-                text: "Los productos se administran desde el panel interno de RCA IMPORT.",
+                text: "Confirmamos la disponibilidad de cada producto antes de coordinar el pago.",
               },
             ].map((item) => (
               <div
                 key={item.title}
-                className="rounded-[1.7rem] border border-slate-200 bg-white p-5 shadow-sm"
+                className="flex gap-4 rounded-2xl border border-line bg-white p-5"
               >
-                <div className="flex gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#0057A8]">
-                    <item.icon size={23} />
-                  </div>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-brand">
+                  <item.icon size={20} />
+                </div>
 
-                  <div>
-                    <p className="font-black">{item.title}</p>
+                <div>
+                  <p className="text-sm font-semibold">{item.title}</p>
 
-                    <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">
-                      {item.text}
-                    </p>
-                  </div>
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    {item.text}
+                  </p>
                 </div>
               </div>
             ))}
-          </section>
+          </div>
         )}
       </section>
 
@@ -484,31 +449,5 @@ export default function CartPage() {
         onConfirm={confirmClearCart}
       />
     </main>
-  );
-}
-
-function SummaryMiniCard({
-  label,
-  value,
-  large = false,
-}: {
-  label: string;
-  value: string | number;
-  large?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-[1.5rem] border border-white/10 bg-white/10 p-5 backdrop-blur ${
-        large ? "col-span-2" : ""
-      }`}
-    >
-      <Sparkles className="text-blue-200" size={24} />
-
-      <p className="mt-4 truncate text-3xl font-black">{value}</p>
-
-      <p className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-slate-300">
-        {label}
-      </p>
-    </div>
   );
 }

@@ -1,6 +1,13 @@
 "use client";
 
 import AdminShell from "@/components/AdminShell";
+import ProductOptionsEditor from "@/components/ProductOptionsEditor";
+import {
+  validateProductOptions,
+  getProductColors,
+  type ColorOption,
+  type StorageOption,
+} from "@/lib/product-options";
 import {
   getSupabaseAdminProductBySlug,
   updateSupabaseFullProductBySlug,
@@ -275,6 +282,10 @@ export default function EditProductPage() {
         featured: Boolean(supabaseProduct.featured),
       });
 
+      // Si el producto solo tenía la lista antigua de colores, se convierte
+      setColorOptions(getProductColors(supabaseProduct));
+      setStorageOptions(supabaseProduct.storageOptions ?? []);
+
       setLoading(false);
       setTaxonomyLoading(false);
     }
@@ -327,9 +338,13 @@ export default function EditProductPage() {
     return parseLines(form.featuresText);
   }, [form.featuresText]);
 
+  const [colorOptions, setColorOptions] = useState<ColorOption[]>([]);
+  const [storageOptions, setStorageOptions] = useState<StorageOption[]>([]);
+
+  // La lista simple de nombres se mantiene sincronizada con los colores
   const variants = useMemo(() => {
-    return parseLines(form.variantsText);
-  }, [form.variantsText]);
+    return colorOptions.map((color) => color.name.trim()).filter(Boolean);
+  }, [colorOptions]);
 
   function updateCountry(countryName: string) {
     const selectedCountry = countryOptions.find(
@@ -526,6 +541,13 @@ export default function EditProductPage() {
       return;
     }
 
+    const optionsError = validateProductOptions(colorOptions, storageOptions);
+
+    if (optionsError) {
+      setErrorMessage(optionsError);
+      return;
+    }
+
     setSaving(true);
 
     const result = await updateSupabaseFullProductBySlug(currentSlug, {
@@ -544,6 +566,8 @@ export default function EditProductPage() {
       description: form.description.trim(),
       features,
       variants,
+      colorOptions,
+      storageOptions,
       imageUrl: form.imageUrl.trim(),
       gallery: galleryImages,
       videoUrl: form.videoUrl.trim(),
@@ -1172,29 +1196,16 @@ export default function EditProductPage() {
               />
             </div>
 
-            <div>
-              <div className="flex items-center justify-between gap-3">
-                <label className="text-sm font-black text-slate-700">
-                  Colores disponibles
-                </label>
-
-                <span className="rounded-full bg-blue-50 px-3 py-2 text-xs font-black text-[#0057A8]">
-                  {variants.length} item(s)
-                </span>
-              </div>
-
-              <textarea
-                value={form.variantsText}
-                onChange={(event) =>
-                  setForm({ ...form, variantsText: event.target.value })
-                }
-                rows={7}
-                placeholder={"Un color por línea\nNatural Titanium\nBlack Titanium\nBlue Titanium"}
-                className="mt-2 w-full resize-none rounded-2xl border border-slate-200 bg-[#f6f8fc] px-4 py-4 text-sm font-semibold outline-none transition focus:border-[#0057A8] focus:bg-white"
-              />
-            </div>
           </div>
         </section>
+
+        <ProductOptionsEditor
+          colors={colorOptions}
+          onColorsChange={setColorOptions}
+          storages={storageOptions}
+          onStoragesChange={setStorageOptions}
+          basePrice={Number(form.price) || 0}
+        />
 
         <section className="rounded-[2rem] bg-slate-950 p-6 text-white shadow-xl shadow-slate-200 xl:col-span-2">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">

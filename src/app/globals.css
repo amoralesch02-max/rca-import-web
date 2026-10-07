@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+/* ============================================================
+   TOKENS DE DISEÑO — paleta ORIGINAL de RCA IMPORT
+   Para cambiar la paleta de TODO el sitio, edita solo estos valores.
+   Uso en clases: bg-bg, bg-surface, border-line, text-brand, bg-brand...
+   ============================================================ */
+@theme inline {
+  /* Fondos claros originales */
+  --color-bg: #f6f8fc;        /* fondo de página */
+  --color-surface: #ffffff;   /* tarjetas */
+  --color-surface-2: #edf4fb; /* fondo de imágenes de producto */
+  --color-line: #e2e8f0;      /* bordes */
+
+  /* Colores de marca RCA IMPORT */
+  --color-brand: #0057a8;        /* azul original */
+  --color-brand-hover: #004a8f;
+  --color-brand-soft: #5aa9f5;   /* azul claro, solo para textos sobre fondo OSCURO */
+  --color-alert: #e31b23;        /* rojo original */
+  --color-alert-hover: #c4151c;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
 :root {
   --background: #f6f8fc;
   --foreground: #111827;
@@ -21,4 +43,83 @@ body {
 
 a {
   text-decoration: none;
+}
+
+/* Hero: azul RCA intenso con brillo blanco y un toque rojo de marca */
+.hero-bg {
+  background:
+    radial-gradient(ellipse 50% 70% at 82% 15%, rgba(255, 255, 255, 0.22) 0%, transparent 65%),
+    radial-gradient(ellipse 45% 55% at 0% 100%, rgba(227, 27, 35, 0.4) 0%, transparent 65%),
+    linear-gradient(135deg, #0069c9 0%, #0057a8 45%, #00366e 100%);
+}
+
+/* Cuadrícula sutil sobre el hero (se desvanece hacia los bordes) */
+.hero-grid {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 85% 85% at 50% 45%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(ellipse 85% 85% at 50% 45%, #000 35%, transparent 100%);
+}
+
+/* Flotación suave de la tarjeta central del carrusel */
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float-y 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float { animation: none; }
+}
+
+/* Degradado del banner de contacto (azul → rojo de marca) */
+.cta-gradient {
+  background: linear-gradient(100deg, #0057a8 0%, #0a4a96 60%, #b3151c 100%);
+}
+
+/* Acordeón: ocultar el triángulo nativo de <summary> */
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Cajón lateral del carrito */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.28s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* Barra de progreso del avance automático del carrusel */
+@keyframes progress-fill {
+  from { width: 0%; }
+  to { width: 100%; }
 }

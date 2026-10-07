@@ -1,26 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 import {
-  BadgeCheck,
-  MessageCircle,
+  buildVariantLabel,
+  getColorHex,
+  getStoragePricing,
+  type ColorOption,
+  type StorageOption,
+} from "@/lib/product-options";
+import type { PublicProduct } from "@/lib/supabase-products";
+import { getWhatsappUrl } from "@/lib/store-settings";
+import { useStoreSettings } from "@/lib/use-store-settings";
+import {
+  Check,
   Minus,
   Plus,
   ShoppingCart,
-  Wallet,
 } from "lucide-react";
-import {
-  DEFAULT_STORE_SETTINGS,
-  getWhatsappUrl,
-  type StoreSettings,
-} from "@/lib/store-settings";
-import { getSupabaseStoreSettings } from "@/lib/supabase-settings";
-import type { PublicProduct } from "@/lib/supabase-products";
-
-type ProductPurchaseActionsProps = {
-  product: PublicProduct;
-};
+import WhatsAppIcon from "@/components/WhatsAppIcon";
+import { useEffect, useMemo, useState } from "react";
 
 type CartItem = {
   productId: number;
@@ -29,6 +26,17 @@ type CartItem = {
   price: number;
   variant: string;
   quantity: number;
+  image?: string;
+};
+
+type ProductPurchaseActionsProps = {
+  product: PublicProduct;
+  colors: ColorOption[];
+  storages: StorageOption[];
+  selectedColor: number;
+  onColorChange: (index: number) => void;
+  selectedStorage: number;
+  onStorageChange: (index: number) => void;
 };
 
 const CART_KEY = "rca_import_cart";
@@ -39,20 +47,24 @@ function getAvailableStock(product: PublicProduct) {
 
 export default function ProductPurchaseActions({
   product,
+  colors,
+  storages,
+  selectedColor,
+  onColorChange,
+  selectedStorage,
+  onStorageChange,
 }: ProductPurchaseActionsProps) {
-  const [settings, setSettings] =
-    useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
+  const settings = useStoreSettings();
 
-  const productColors =
-    product.variants && product.variants.length > 0
-      ? product.variants
-      : ["Color único"];
-
-  const [selectedColor, setSelectedColor] = useState(productColors[0]);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [pageUrl, setPageUrl] = useState("");
 
-  const finalPrice = product.salePrice ?? product.price;
+  const color = colors[selectedColor];
+  const storage = storages[selectedStorage];
+  const pricing = getStoragePricing(product, selectedStorage);
+  const variantLabel = buildVariantLabel(color?.name, storage?.label);
+
   const availableStock = getAvailableStock(product);
   const canBuy =
     product.available !== false &&
@@ -60,25 +72,38 @@ export default function ProductPurchaseActions({
     availableStock > 0;
 
   useEffect(() => {
-    async function loadSettings() {
-      const supabaseSettings = await getSupabaseStoreSettings();
-      setSettings(supabaseSettings);
-    }
-
-    loadSettings();
-  }, []);
-
-  useEffect(() => {
-    setSelectedColor(productColors[0]);
     setQuantity(1);
   }, [product.slug]);
 
+  useEffect(() => {
+    setPageUrl(window.location.href);
+  }, []);
+
+  // Mensaje automático para WhatsApp con la opción elegida
   const whatsappUrl = useMemo(() => {
-    return getWhatsappUrl(
-      settings.whatsappMain,
-      `Hola RCA IMPORT, estoy interesado en el producto ${product.name}. Color: ${selectedColor}. Cantidad: ${quantity}. Quiero consultar disponibilidad, separación y envío.`
-    );
-  }, [settings.whatsappMain, product.name, selectedColor, quantity]);
+    const lines = [
+      `Hola RCA IMPORT, quiero consultar por este producto:`,
+      ``,
+      `• ${product.name}`,
+      color ? `• Color: ${color.name}` : "",
+      storage ? `• Capacidad: ${storage.label}` : "",
+      `• Cantidad: ${quantity}`,
+      `• Precio: S/ ${pricing.final}`,
+      pageUrl ? `\n${pageUrl}` : "",
+      ``,
+      `¿Está disponible? Quisiera coordinar compra y envío.`,
+    ].filter((line, index, all) => line !== "" || all[index - 1] !== "");
+
+    return getWhatsappUrl(settings.whatsappMain, lines.join("\n"));
+  }, [
+    settings.whatsappMain,
+    product.name,
+    color,
+    storage,
+    quantity,
+    pricing.final,
+    pageUrl,
+  ]);
 
   function addToCart() {
     if (!canBuy) {
@@ -86,10 +111,17 @@ export default function ProductPurchaseActions({
     }
 
     const currentCart = localStorage.getItem(CART_KEY);
-    const cart: CartItem[] = currentCart ? JSON.parse(currentCart) : [];
+    let cart: CartItem[] = [];
+
+    try {
+      cart = currentCart ? (JSON.parse(currentCart) as CartItem[]) : [];
+    } catch {
+      cart = [];
+    }
 
     const existingItem = cart.find(
-      (item) => item.productId === product.id && item.variant === selectedColor
+      (item) =>
+        item.productId === product.id && item.variant === variantLabel
     );
 
     if (existingItem) {
@@ -99,14 +131,18 @@ export default function ProductPurchaseActions({
         productId: product.id,
         slug: product.slug,
         name: product.name,
-        price: finalPrice,
-        variant: selectedColor,
+        price: pricing.final,
+        variant: variantLabel,
         quantity,
+        image: color?.images[0] || product.imageUrl || undefined,
       });
     }
 
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
     window.dispatchEvent(new Event("rca-cart-updated"));
+
+    // Abre el carrito lateral: ahí está el botón para consultar por WhatsApp
+    window.dispatchEvent(new Event("rca-open-cart"));
 
     setAdded(true);
 
@@ -115,150 +151,144 @@ export default function ProductPurchaseActions({
     }, 2500);
   }
 
-  function decreaseQuantity() {
-    setQuantity((value) => Math.max(1, value - 1));
-  }
-
-  function increaseQuantity() {
-    setQuantity((value) => {
-      if (availableStock <= 0) {
-        return value;
-      }
-
-      return Math.min(availableStock, value + 1);
-    });
-  }
-
   return (
     <div>
-      <div>
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-200">
-            Color
+      {/* Capacidad */}
+      {storages.length > 0 && (
+        <div>
+          <p className="text-sm text-slate-500">Elige capacidad</p>
+
+          <div className="mt-3 flex flex-wrap gap-3">
+            {storages.map((item, index) => {
+              const itemPricing = getStoragePricing(product, index);
+              const active = selectedStorage === index;
+
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => onStorageChange(index)}
+                  className={`min-w-[104px] rounded-xl border px-4 py-3 text-left transition ${
+                    active
+                      ? "border-brand bg-blue-50 ring-2 ring-brand/20"
+                      : "border-line bg-white hover:border-brand"
+                  }`}
+                >
+                  <span className="block text-sm font-bold">{item.label}</span>
+
+                  <span
+                    className={`mt-0.5 block text-xs font-semibold ${
+                      active ? "text-brand" : "text-slate-500"
+                    }`}
+                  >
+                    S/ {itemPricing.final}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Color */}
+      {colors.length > 0 && (
+        <div className={storages.length > 0 ? "mt-6" : ""}>
+          <p className="text-sm text-slate-500">
+            Color:{" "}
+            <span className="font-semibold text-slate-950">{color?.name}</span>
           </p>
 
-          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-black text-slate-300">
-            {availableStock} disponible(s)
-          </span>
-        </div>
+          <div className="mt-3 flex flex-wrap gap-3">
+            {colors.map((item, index) => {
+              const active = selectedColor === index;
 
-        <div className="mt-4 flex flex-wrap gap-3">
-          {productColors.map((color) => (
-            <button
-              key={color}
-              type="button"
-              onClick={() => setSelectedColor(color)}
-              className={`rounded-full border px-4 py-3 text-sm font-black transition ${
-                selectedColor === color
-                  ? "border-[#0057A8] bg-[#0057A8] text-white shadow-lg shadow-blue-950/30"
-                  : "border-white/10 bg-white/10 text-slate-200 hover:border-blue-300 hover:bg-white hover:text-slate-950"
-              }`}
-            >
-              {color}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-6 rounded-[1.6rem] border border-white/10 bg-white/10 p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-200">
-              Cantidad
-            </p>
-
-            <p className="mt-1 text-xs font-semibold text-slate-400">
-              Selecciona cuántas unidades deseas agregar.
-            </p>
+              return (
+                <button
+                  key={item.name}
+                  type="button"
+                  onClick={() => onColorChange(index)}
+                  aria-label={`Color ${item.name}`}
+                  title={item.name}
+                  className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition ${
+                    active
+                      ? "border-brand"
+                      : "border-transparent hover:border-slate-300"
+                  }`}
+                >
+                  <span
+                    className="h-7 w-7 rounded-full border border-slate-300 shadow-inner"
+                    style={{ backgroundColor: getColorHex(item) }}
+                  />
+                </button>
+              );
+            })}
           </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={decreaseQuantity}
-              disabled={quantity <= 1}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white shadow-sm transition hover:bg-white hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Minus size={18} />
-            </button>
-
-            <span className="flex h-12 min-w-14 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/40 px-5 text-xl font-black text-white">
-              {quantity}
-            </span>
-
-            <button
-              type="button"
-              onClick={increaseQuantity}
-              disabled={!canBuy || quantity >= availableStock}
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-[#0057A8] text-white shadow-lg shadow-blue-950/30 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Plus size={18} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {added && (
-        <div className="mt-5 flex gap-3 rounded-2xl border border-green-400/20 bg-green-400/10 px-5 py-4 text-sm font-black text-green-200">
-          <BadgeCheck className="shrink-0" size={20} />
-          Producto agregado al carrito correctamente.
         </div>
       )}
+
+      {/* Cantidad */}
+      <div className="mt-5 flex flex-wrap items-center gap-4">
+        <div className="flex items-center rounded-full border border-line bg-white">
+          <button
+            type="button"
+            onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+            disabled={quantity <= 1}
+            aria-label="Disminuir cantidad"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-bg disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Minus size={16} />
+          </button>
+
+          <span className="min-w-10 text-center text-base font-semibold">
+            {quantity}
+          </span>
+
+          <button
+            type="button"
+            onClick={() =>
+              setQuantity((value) =>
+                availableStock > 0 ? Math.min(availableStock, value + 1) : value
+              )
+            }
+            disabled={!canBuy || quantity >= availableStock}
+            aria-label="Aumentar cantidad"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-slate-700 transition hover:bg-bg disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+
+      </div>
 
       {!canBuy && (
-        <div className="mt-5 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-5 py-4 text-sm font-black text-amber-200">
-          Este producto no tiene stock disponible por ahora. Puedes consultar por
-          WhatsApp.
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
+          Este producto no tiene stock disponible por ahora. Puedes consultar
+          por WhatsApp.
         </div>
       )}
 
-      <div className="mt-8 grid gap-3 sm:grid-cols-3">
+      {/* Acciones */}
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <button
           type="button"
           onClick={addToCart}
           disabled={!canBuy}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0057A8] px-5 py-4 text-center text-sm font-black text-white shadow-lg shadow-blue-950/30 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-brand px-5 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <ShoppingCart size={18} />
-          Comprar
+          {added ? <Check size={17} /> : <ShoppingCart size={17} />}
+          {added ? "Agregado" : "Añadir al carrito"}
         </button>
-
-        <Link
-          href="/separar"
-          onClick={(event) => {
-            if (!canBuy) {
-              event.preventDefault();
-              return;
-            }
-
-            addToCart();
-          }}
-          className={`inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-center text-sm font-black text-white shadow-lg transition ${
-            canBuy
-              ? "bg-[#E31B23] shadow-red-950/20 hover:bg-red-700"
-              : "pointer-events-none bg-slate-700 opacity-50"
-          }`}
-        >
-          <Wallet size={18} />
-          Separar
-        </Link>
 
         <a
           href={whatsappUrl}
           target="_blank"
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-4 text-center text-sm font-black text-slate-950 transition hover:bg-slate-100"
+          rel="noreferrer"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-green-500 px-5 text-sm font-semibold text-white shadow-lg shadow-green-200 transition hover:bg-green-600"
         >
-          <MessageCircle size={18} />
-          WhatsApp
+          <WhatsAppIcon size={17} />
+          Consultar por WhatsApp
         </a>
       </div>
-
-      <Link
-        href="/carrito"
-        className="mt-4 inline-flex w-full justify-center rounded-2xl border border-white/10 bg-white/10 px-5 py-4 text-sm font-black text-white transition hover:bg-white hover:text-slate-950"
-      >
-        Ver carrito
-      </Link>
     </div>
   );
 }

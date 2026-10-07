@@ -1,6 +1,12 @@
 "use client";
 
 import AdminShell from "@/components/AdminShell";
+import ProductOptionsEditor from "@/components/ProductOptionsEditor";
+import {
+  validateProductOptions,
+  type ColorOption,
+  type StorageOption,
+} from "@/lib/product-options";
 import { supabase } from "@/lib/supabase";
 import { createSupabaseProduct } from "@/lib/supabase-products";
 import { uploadImageFile, uploadVideoFile } from "@/lib/supabase-storage";
@@ -242,9 +248,13 @@ export default function NewProductPage() {
     return parseLines(form.featuresText);
   }, [form.featuresText]);
 
+  const [colorOptions, setColorOptions] = useState<ColorOption[]>([]);
+  const [storageOptions, setStorageOptions] = useState<StorageOption[]>([]);
+
+  // La lista simple de nombres se mantiene sincronizada con los colores
   const variants = useMemo(() => {
-    return parseLines(form.variantsText);
-  }, [form.variantsText]);
+    return colorOptions.map((color) => color.name.trim()).filter(Boolean);
+  }, [colorOptions]);
 
   const previewPrice = Number(form.salePrice || form.price || 0);
   const normalPrice = Number(form.price || 0);
@@ -435,6 +445,13 @@ export default function NewProductPage() {
       return;
     }
 
+    const optionsError = validateProductOptions(colorOptions, storageOptions);
+
+    if (optionsError) {
+      setErrorMessage(optionsError);
+      return;
+    }
+
     setSaving(true);
 
     const result = await createSupabaseProduct({
@@ -453,6 +470,8 @@ export default function NewProductPage() {
       description: form.description.trim(),
       features,
       variants,
+      colorOptions,
+      storageOptions,
       imageUrl: form.imageUrl.trim(),
       gallery: galleryImages,
       videoUrl: form.videoUrl.trim(),
@@ -1029,29 +1048,16 @@ export default function NewProductPage() {
               />
             </div>
 
-            <div>
-              <div className="flex items-center justify-between gap-3">
-                <label className="text-sm font-black text-slate-700">
-                  Colores Disponibles
-                </label>
-
-                <span className="rounded-full bg-blue-50 px-3 py-2 text-xs font-black text-[#0057A8]">
-                  {variants.length} item(s)
-                </span>
-              </div>
-
-              <textarea
-                value={form.variantsText}
-                onChange={(event) =>
-                  setForm({ ...form, variantsText: event.target.value })
-                }
-                rows={7}
-                placeholder={"Un color por línea\nNatural Titanium\nBlack Titanium\nBlue Titanium"}
-                className="mt-2 w-full resize-none rounded-2xl border border-slate-200 bg-[#f6f8fc] px-4 py-4 text-sm font-semibold outline-none transition focus:border-[#0057A8] focus:bg-white"
-              />
-            </div>
           </div>
         </section>
+
+        <ProductOptionsEditor
+          colors={colorOptions}
+          onColorsChange={setColorOptions}
+          storages={storageOptions}
+          onStoragesChange={setStorageOptions}
+          basePrice={Number(form.price) || 0}
+        />
 
         <section className="rounded-[2rem] bg-slate-950 p-6 text-white shadow-xl shadow-slate-200 xl:col-span-2">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">

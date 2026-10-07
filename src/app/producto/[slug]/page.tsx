@@ -11,32 +11,34 @@ import {
   type PublicProduct,
 } from "@/lib/supabase-products";
 import {
-  ArrowLeft,
+  getProductColors,
+  getProductStorages,
+  getStoragePricing,
+} from "@/lib/product-options";
+import { getSupabaseStoreSettings } from "@/lib/supabase-settings";
+import {
+  DEFAULT_STORE_SETTINGS,
+  getWhatsappUrl,
+  type StoreSettings,
+} from "@/lib/store-settings";
+import {
   BadgeCheck,
   Box,
   ChevronRight,
   Clock3,
-  FileCheck,
-  Globe2,
-  HeartHandshake,
-  Layers,
   PackageCheck,
   RefreshCw,
   Share2,
   ShieldCheck,
   ShoppingBag,
-  Sparkles,
-  Star,
-  Tag,
   Truck,
-  Wallet,
   XCircle,
-  Zap,
   type LucideIcon,
 } from "lucide-react";
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 function generateSlug(text: string) {
   return text
@@ -52,26 +54,19 @@ function getAvailableStock(product: PublicProduct) {
   return Math.max(product.stock - product.reservedStock, 0);
 }
 
-function getFinalPrice(product: PublicProduct) {
-  return product.salePrice ?? product.price;
-}
-
-function getDiscountPercentage(product: PublicProduct) {
-  if (!product.salePrice || product.price <= 0) {
-    return null;
-  }
-
-  return Math.round(((product.price - product.salePrice) / product.price) * 100);
-}
-
-function getAvailabilityData(product: PublicProduct) {
+function getAvailabilityData(product: PublicProduct): {
+  label: string;
+  description: string;
+  className: string;
+  icon: LucideIcon;
+} {
   const availableStock = getAvailableStock(product);
 
   if (product.available === false || product.visible === false) {
     return {
       label: "No disponible",
       description: "Consulta por WhatsApp para más información.",
-      className: "bg-red-50 text-[#E31B23]",
+      className: "bg-red-50 text-alert",
       icon: XCircle,
     };
   }
@@ -87,7 +82,7 @@ function getAvailabilityData(product: PublicProduct) {
 
   return {
     label: "Disponible",
-    description: `${availableStock} unidad(es) listas para separar o comprar.`,
+    description: "",
     className: "bg-green-50 text-green-700",
     icon: BadgeCheck,
   };
@@ -99,19 +94,26 @@ export default function ProductDetailPage() {
 
   const [product, setProduct] = useState<PublicProduct | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<PublicProduct[]>([]);
+  const [settings, setSettings] =
+    useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [shareCopied, setShareCopied] = useState(false);
+  const [selectedColor, setSelectedColor] = useState(0);
+  const [selectedStorage, setSelectedStorage] = useState(0);
 
   useEffect(() => {
     async function loadProduct() {
       setLoading(true);
 
-      const [supabaseProduct, allProducts] = await Promise.all([
-        getSupabaseProductBySlug(slug),
-        getSupabaseProducts(),
-      ]);
+      const [supabaseProduct, allProducts, supabaseSettings] =
+        await Promise.all([
+          getSupabaseProductBySlug(slug),
+          getSupabaseProducts(),
+          getSupabaseStoreSettings(),
+        ]);
 
       setProduct(supabaseProduct);
+      setSettings(supabaseSettings);
 
       if (supabaseProduct) {
         const related = allProducts
@@ -128,6 +130,9 @@ export default function ProductDetailPage() {
 
       setLoading(false);
     }
+
+    setSelectedColor(0);
+    setSelectedStorage(0);
 
     if (slug) {
       loadProduct();
@@ -165,21 +170,19 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#f6f8fc] text-slate-950">
+      <main className="min-h-screen bg-bg text-slate-950">
         <SiteHeader />
 
         <section className="mx-auto max-w-7xl px-5 py-10 md:px-6">
-          <div className="rounded-[2.5rem] border border-slate-200 bg-white p-10 text-center shadow-sm">
+          <div className="rounded-2xl border border-line bg-white p-10 text-center">
             <RefreshCw
-              className="mx-auto mb-4 animate-spin text-[#0057A8]"
-              size={44}
+              className="mx-auto mb-4 animate-spin text-brand"
+              size={38}
             />
 
-            <p className="text-xl font-black">
-              Cargando producto desde Supabase...
-            </p>
+            <p className="text-lg font-semibold">Cargando producto...</p>
 
-            <p className="mt-2 text-sm font-semibold text-slate-500">
+            <p className="mt-1 text-sm text-slate-500">
               Estamos preparando la información del producto.
             </p>
           </div>
@@ -192,17 +195,17 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <main className="min-h-screen bg-[#f6f8fc] text-slate-950">
+      <main className="min-h-screen bg-bg text-slate-950">
         <SiteHeader />
 
-        <section className="mx-auto max-w-7xl px-5 py-10 md:px-6">
-          <div className="overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white shadow-sm">
-            <div className="bg-slate-950 p-10 text-center text-white">
-              <XCircle className="mx-auto mb-4 text-red-300" size={58} />
+        <section className="mx-auto max-w-3xl px-5 py-12 md:px-6">
+          <div className="overflow-hidden rounded-2xl border border-line bg-white text-center">
+            <div className="bg-slate-950 px-6 py-10 text-white">
+              <XCircle className="mx-auto mb-4 text-red-300" size={52} />
 
-              <p className="text-3xl font-black">Producto no encontrado</p>
+              <p className="text-2xl font-bold">Producto no encontrado</p>
 
-              <p className="mx-auto mt-3 max-w-xl text-sm font-semibold leading-7 text-slate-300">
+              <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-300">
                 El producto no existe, fue eliminado o no está visible en el
                 catálogo público.
               </p>
@@ -211,15 +214,15 @@ export default function ProductDetailPage() {
             <div className="grid gap-3 p-6 sm:grid-cols-2">
               <Link
                 href="/catalogo"
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-[#0057A8] px-6 text-sm font-black text-white transition hover:bg-blue-700"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand px-6 text-sm font-semibold text-white transition hover:bg-brand-hover"
               >
-                <ShoppingBag size={18} />
+                <ShoppingBag size={17} />
                 Volver al catálogo
               </Link>
 
               <Link
                 href="/contacto"
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-slate-100 px-6 text-sm font-black text-slate-700 transition hover:bg-slate-200"
+                className="inline-flex h-12 items-center justify-center rounded-full border border-line px-6 text-sm font-semibold text-slate-700 transition hover:border-brand hover:text-brand"
               >
                 Contactar tienda
               </Link>
@@ -232,9 +235,13 @@ export default function ProductDetailPage() {
     );
   }
 
-  const availableStock = getAvailableStock(product);
-  const finalPrice = getFinalPrice(product);
-  const discountPercentage = getDiscountPercentage(product);
+  const colors = getProductColors(product);
+  const storages = getProductStorages(product);
+  const pricing = getStoragePricing(product, selectedStorage);
+  const finalPrice = pricing.final;
+  const discountPercentage = pricing.salePrice
+    ? Math.round(((pricing.price - pricing.salePrice) / pricing.price) * 100)
+    : null;
   const availability = getAvailabilityData(product);
   const AvailabilityIcon = availability.icon;
 
@@ -242,374 +249,252 @@ export default function ProductDetailPage() {
   const countrySlug = generateSlug(product.country);
   const categorySlug = generateSlug(product.category);
 
-  const productHighlights: {
-    title: string;
-    value: string;
-    icon: LucideIcon;
-    className: string;
-  }[] = [
-    {
-      title: "Disponibilidad",
-      value: availability.label,
-      icon: AvailabilityIcon,
-      className: availability.className,
-    },
-    {
-      title: "Stock",
-      value: `${availableStock} unidad(es)`,
-      icon: PackageCheck,
-      className: "bg-blue-50 text-[#0057A8]",
-    },
-    {
-      title: "Modalidad",
-      value: product.allowsReservation ? "Compra o separación" : "Solo compra",
-      icon: Wallet,
-      className: "bg-purple-50 text-purple-700",
-    },
-    {
-      title: "Origen",
-      value: `${product.countryFlag} ${product.country}`,
-      icon: Globe2,
-      className: "bg-slate-100 text-slate-700",
-    },
-  ];
+  const productFeatures = product.features ?? [];
 
-  const trustItems = [
+  const whatsappQuestionUrl = getWhatsappUrl(
+    settings.whatsappMain,
+    `Hola RCA IMPORT, tengo una consulta sobre el producto ${product.name}.`
+  );
+
+  const trustItems: { icon: LucideIcon; text: string }[] = [
     {
       icon: PackageCheck,
-      text: "Producto registrado en catálogo con stock actualizado.",
+      text: "Stock actualizado en catálogo.",
     },
     {
       icon: ShieldCheck,
-      text: "Coordinación directa por WhatsApp antes de concretar la compra.",
+      text: "Coordinación directa por WhatsApp antes de comprar.",
     },
     {
       icon: Truck,
-      text: "Envíos disponibles a todo el Perú previa coordinación.",
-    },
-    {
-      icon: FileCheck,
-      text: product.invoice
-        ? "Producto disponible con comprobante."
-        : "Consultar comprobante disponible.",
+      text: "Envíos a todo el Perú previa coordinación.",
     },
     {
       icon: Box,
       text: product.wholesale
-        ? "Disponible también para compras por cantidad."
-        : "Producto disponible para venta individual.",
+        ? "Disponible también por cantidad."
+        : "Disponible para venta individual.",
     },
   ];
 
-  const productFeatures = product.features ?? [];
-  const productVariants = product.variants ?? [];
-
   return (
-    <main className="min-h-screen bg-[#f6f8fc] text-slate-950">
+    <main className="min-h-screen bg-bg text-slate-950">
       <SiteHeader />
 
-      <section className="mx-auto max-w-7xl px-5 py-8 md:px-6 md:py-10">
-        <div className="mb-6 flex flex-wrap items-center gap-2 text-sm font-bold text-slate-500">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1 transition hover:text-[#0057A8]"
-          >
+      <section className="mx-auto max-w-6xl px-5 py-5 md:px-6 md:py-6">
+        {/* Migas de pan */}
+        <nav className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+          <Link href="/" className="transition hover:text-brand">
             Inicio
           </Link>
 
-          <ChevronRight size={15} className="text-slate-300" />
+          <ChevronRight size={13} className="text-slate-300" />
 
-          <Link href="/catalogo" className="transition hover:text-[#0057A8]">
+          <Link href="/catalogo" className="transition hover:text-brand">
             Catálogo
           </Link>
 
-          <ChevronRight size={15} className="text-slate-300" />
+          <ChevronRight size={13} className="text-slate-300" />
 
           <Link
             href={`/categoria/${categorySlug}`}
-            className="transition hover:text-[#0057A8]"
+            className="transition hover:text-brand"
           >
             {product.category}
           </Link>
 
-          <ChevronRight size={15} className="text-slate-300" />
+          <ChevronRight size={13} className="text-slate-300" />
 
-          <span className="line-clamp-1 text-slate-950">{product.name}</span>
-        </div>
+          <span className="line-clamp-1 text-slate-700">{product.name}</span>
+        </nav>
 
-        <section className="relative mb-8 overflow-hidden rounded-[2.5rem] bg-slate-950 p-7 text-white shadow-2xl shadow-slate-300 md:p-10">
-          <div className="absolute right-[-160px] top-[-180px] h-96 w-96 rounded-full bg-[#0057A8]/30 blur-3xl" />
-          <div className="absolute bottom-[-200px] left-[-120px] h-96 w-96 rounded-full bg-[#E31B23]/25 blur-3xl" />
+        {/* Galería + información */}
+        <div className="mt-4 grid gap-6 lg:grid-cols-[0.9fr_1fr] lg:gap-10">
+          <div className="min-w-0 lg:sticky lg:top-28 lg:self-start">
+            <ProductMediaGallery
+              key={product.slug}
+              product={product}
+              colors={colors}
+              selectedColor={selectedColor}
+              onColorChange={setSelectedColor}
+            />
+          </div>
 
-          <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_0.36fr] lg:items-center">
-            <div>
-              <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full bg-[#E31B23] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white">
-                  <Sparkles size={15} />
-                  {product.tag || "Producto RCA"}
-                </span>
-
-                {discountPercentage && (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-950">
-                    <Tag size={15} />
-                    -{discountPercentage}% descuento
-                  </span>
-                )}
-
-                {product.featured && (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-amber-300 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-950">
-                    <Star size={15} />
-                    Destacado
-                  </span>
-                )}
-              </div>
-
-              <h1 className="mt-6 max-w-4xl text-4xl font-black leading-tight md:text-6xl">
-                {product.name}
-              </h1>
-
-              <div className="mt-5 flex flex-wrap items-center gap-3 text-sm font-bold">
-                <Link
-                  href={`/categoria/${categorySlug}`}
-                  className="rounded-full bg-white/10 px-4 py-2 text-slate-200 transition hover:bg-white hover:text-slate-950"
-                >
-                  {product.category}
-                </Link>
-
-                <Link
-                  href={`/marca/${brandSlug}`}
-                  className="rounded-full bg-white/10 px-4 py-2 text-blue-200 transition hover:bg-[#0057A8] hover:text-white"
-                >
-                  {product.brand}
-                </Link>
-
-                <Link
-                  href={`/pais/${countrySlug}`}
-                  className="rounded-full bg-white/10 px-4 py-2 text-slate-200 transition hover:bg-white hover:text-slate-950"
-                >
-                  {product.countryFlag} {product.country}
-                </Link>
-
-                <span className="rounded-full bg-white/10 px-4 py-2 text-slate-200">
-                  {product.condition}
-                </span>
-              </div>
-            </div>
-
-            <div className="rounded-[2rem] border border-white/10 bg-white/10 p-5 backdrop-blur">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-200">
-                Precio actual
-              </p>
-
-              <div className="mt-3 flex flex-wrap items-end gap-3">
-                <p className="text-5xl font-black">S/ {finalPrice}</p>
-
-                {product.salePrice && (
-                  <p className="pb-1 text-xl font-bold text-slate-400 line-through">
-                    S/ {product.price}
-                  </p>
-                )}
-              </div>
-
-              <p className="mt-4 text-sm font-semibold leading-6 text-slate-300">
-                {availability.description}
+          <div className="min-w-0">
+            <div className="flex items-start justify-between gap-4">
+              <p className="text-xs font-bold uppercase tracking-widest text-brand">
+                {product.condition}
               </p>
 
               <button
                 type="button"
                 onClick={handleShareProduct}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-4 text-sm font-black text-slate-950 transition hover:bg-slate-100"
+                aria-label="Compartir producto"
+                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-brand hover:text-brand"
               >
-                <Share2 size={18} />
-                {shareCopied ? "Enlace copiado" : "Compartir producto"}
+                <Share2 size={14} />
+                {shareCopied ? "Enlace copiado" : "Compartir"}
               </button>
             </div>
-          </div>
-        </section>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_0.85fr]">
-          <ProductMediaGallery product={product} />
+            <h1 className="mt-2 text-2xl font-bold leading-tight tracking-tight md:text-[1.7rem]">
+              {product.name}
+            </h1>
 
-          <section className="rounded-[2.5rem] border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-            <div className="grid gap-3 sm:grid-cols-2">
-              {productHighlights.map((item) => (
-                <div
-                  key={item.title}
-                  className="rounded-[1.5rem] border border-slate-200 bg-[#f6f8fc] p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${item.className}`}
-                    >
-                      <item.icon size={21} />
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
-                        {item.title}
-                      </p>
-
-                      <p className="mt-1 truncate text-sm font-black text-slate-950">
-                        {item.value}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-7 rounded-[2rem] bg-slate-950 p-6 text-white">
-              <p className="text-sm font-black uppercase tracking-[0.2em] text-blue-300">
-                Compra rápida
-              </p>
-
-              <h2 className="mt-3 text-3xl font-black leading-tight">
-                Separa o consulta este producto con RCA IMPORT.
-              </h2>
-
-              <p className="mt-3 text-sm font-semibold leading-7 text-slate-300">
-                Puedes agregarlo al carrito, separar con adelanto o consultar
-                directamente por WhatsApp según disponibilidad.
-              </p>
-
-              <div className="mt-6">
-                <ProductPurchaseActions product={product} />
-              </div>
-            </div>
-
-            <div className="mt-7">
-              <p className="text-sm font-black uppercase tracking-[0.22em] text-[#E31B23]">
-                Descripción
-              </p>
-
-              <p className="mt-3 text-sm font-semibold leading-7 text-slate-600">
-                {product.description ||
-                  "Este producto aún no tiene una descripción detallada registrada."}
-              </p>
-            </div>
-
-            {productVariants.length > 0 && (
-              <div className="mt-7">
-                <p className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.22em] text-[#0057A8]">
-                  <Layers size={17} />
-                  Colores disponibles
-                </p>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {productVariants.map((variant) => (
-                    <span
-                      key={variant}
-                      className="rounded-full border border-slate-200 bg-[#f6f8fc] px-4 py-2 text-xs font-black text-slate-700"
-                    >
-                      {variant}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-        </div>
-
-        <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.75fr]">
-          <div className="rounded-[2.5rem] border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-black uppercase tracking-[0.25em] text-[#E31B23]">
-                  Características
-                </p>
-
-                <h2 className="mt-3 text-3xl font-black">
-                  Información del producto
-                </h2>
-              </div>
-
-              <div className="hidden h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#0057A8] sm:flex">
-                <Zap size={26} />
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-3">
-              {productFeatures.length > 0 ? (
-                productFeatures.map((feature) => (
-                  <div
-                    key={feature}
-                    className="flex gap-3 rounded-2xl bg-[#f6f8fc] p-4"
-                  >
-                    <BadgeCheck className="shrink-0 text-[#0057A8]" />
-
-                    <p className="text-sm font-semibold leading-6 text-slate-600">
-                      {feature}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <div className="rounded-2xl bg-[#f6f8fc] p-5">
-                  <p className="text-sm font-semibold text-slate-500">
-                    Este producto aún no tiene características registradas.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <aside className="rounded-[2.5rem] bg-slate-950 p-6 text-white shadow-xl shadow-slate-200 md:p-8">
-            <p className="text-sm font-black uppercase tracking-[0.25em] text-blue-300">
-              Compra segura
-            </p>
-
-            <h2 className="mt-4 text-3xl font-black leading-tight">
-              Atención personalizada por RCA IMPORT.
-            </h2>
-
-            <div className="mt-6 space-y-4">
-              {trustItems.map((item) => (
-                <div key={item.text} className="flex gap-3">
-                  <item.icon className="shrink-0 text-blue-300" />
-
-                  <p className="text-sm font-semibold leading-6 text-slate-300">
-                    {item.text}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-7 rounded-[1.7rem] border border-white/10 bg-white/10 p-5">
-              <div className="flex gap-3">
-                <HeartHandshake className="shrink-0 text-blue-300" />
-
-                <p className="text-sm font-semibold leading-6 text-slate-300">
-                  Si deseas confirmar compatibilidad, condición del producto o
-                  precio por cantidad, comunícate con RCA IMPORT antes de
-                  separar.
-                </p>
-              </div>
-            </div>
-          </aside>
-        </section>
-
-        {relatedProducts.length > 0 && (
-          <section className="mt-10">
-            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-              <div>
-                <p className="text-sm font-black uppercase tracking-[0.25em] text-[#E31B23]">
-                  También podría interesarte
-                </p>
-
-                <h2 className="mt-3 text-4xl font-black">
-                  Productos relacionados
-                </h2>
-              </div>
+            {/* Chips: categoría, marca, país */}
+            <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium">
+              <Link
+                href={`/categoria/${categorySlug}`}
+                className="rounded-full bg-white px-3 py-1.5 text-slate-600 ring-1 ring-line transition hover:text-brand hover:ring-brand"
+              >
+                {product.category}
+              </Link>
 
               <Link
-                href="/catalogo"
-                className="inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-[#0057A8] hover:text-white"
+                href={`/marca/${brandSlug}`}
+                className="rounded-full bg-white px-3 py-1.5 text-slate-600 ring-1 ring-line transition hover:text-brand hover:ring-brand"
               >
-                Ver catálogo
-                <ChevronRight size={17} />
+                {product.brand}
+              </Link>
+
+              <Link
+                href={`/pais/${countrySlug}`}
+                className="rounded-full bg-white px-3 py-1.5 text-slate-600 ring-1 ring-line transition hover:text-brand hover:ring-brand"
+              >
+                {product.countryFlag} {product.country}
               </Link>
             </div>
 
-            <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {/* Precio */}
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <p className="text-3xl font-bold tracking-tight">
+                S/ {finalPrice}
+              </p>
+
+              {pricing.salePrice && (
+                <p className="text-base font-medium text-slate-400 line-through">
+                  S/ {pricing.price}
+                </p>
+              )}
+
+              {discountPercentage && (
+                <span className="rounded-md bg-alert px-2.5 py-1 text-xs font-bold text-white">
+                  -{discountPercentage}%
+                </span>
+              )}
+
+              {product.tag && (
+                <span className="rounded-md bg-slate-950 px-2.5 py-1 text-xs font-bold text-white">
+                  {product.tag}
+                </span>
+              )}
+            </div>
+
+            {/* Disponibilidad */}
+            <p
+              className={`mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${availability.className}`}
+            >
+              <AvailabilityIcon size={16} />
+              {availability.label}
+            </p>
+
+
+            {/* Características destacadas */}
+            {productFeatures.length > 0 && (
+              <ul className="mt-4 grid gap-2">
+                {productFeatures.slice(0, 8).map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-start gap-3 text-sm text-slate-700"
+                  >
+                    <BadgeCheck
+                      size={18}
+                      className="mt-0.5 shrink-0 text-slate-950"
+                    />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <hr className="my-5 border-line" />
+
+            {/* Compra */}
+            <ProductPurchaseActions
+              key={product.slug}
+              product={product}
+              colors={colors}
+              storages={storages}
+              selectedColor={selectedColor}
+              onColorChange={setSelectedColor}
+              selectedStorage={selectedStorage}
+              onStorageChange={setSelectedStorage}
+            />
+
+            <a
+              href={whatsappQuestionUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-green-700 transition hover:text-green-800"
+            >
+              <WhatsAppIcon size={16} />
+              ¿Dudas? Escríbenos por WhatsApp
+            </a>
+
+            {/* Compra segura */}
+            <div className="mt-5 grid gap-2.5 rounded-2xl border border-line bg-white p-4 sm:grid-cols-2">
+              {trustItems.map((item) => (
+                <div
+                  key={item.text}
+                  className="flex items-start gap-2.5 text-xs leading-5 text-slate-600"
+                >
+                  <item.icon size={16} className="mt-0.5 shrink-0 text-brand" />
+                  {item.text}
+                </div>
+              ))}
+            </div>
+
+            {/* Formas de pago */}
+            <div className="mt-3 rounded-2xl border border-line bg-white p-4">
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                Formas de pago
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {["Yape", "Transferencia"].map((method) => (
+                  <span
+                    key={method}
+                    className="rounded-md border border-line bg-bg px-3 py-1.5 text-xs font-semibold text-slate-700"
+                  >
+                    {method}
+                  </span>
+                ))}
+              </div>
+
+              <p className="mt-3 text-xs leading-5 text-slate-500">
+                {settings.paymentMessage}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Más productos */}
+        {relatedProducts.length > 0 && (
+          <section className="mt-10 border-t border-line pt-8">
+            <div className="flex items-end justify-between gap-4">
+              <h2 className="text-2xl font-bold tracking-tight">
+                Más {product.category}
+              </h2>
+
+              <Link
+                href={`/categoria/${categorySlug}`}
+                className="shrink-0 text-sm font-semibold text-brand transition hover:text-brand-hover"
+              >
+                Ver todo →
+              </Link>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
               {relatedProducts.map((relatedProduct) => (
                 <PublicProductCard
                   key={relatedProduct.slug}
@@ -619,16 +504,6 @@ export default function ProductDetailPage() {
             </div>
           </section>
         )}
-
-        <div className="mt-10">
-          <Link
-            href="/catalogo"
-            className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-4 text-sm font-black text-white transition hover:bg-[#0057A8]"
-          >
-            <ArrowLeft size={18} />
-            Volver al catálogo
-          </Link>
-        </div>
       </section>
 
       <SiteFooter />

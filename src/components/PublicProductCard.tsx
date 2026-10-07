@@ -1,15 +1,24 @@
 "use client";
 
+import ProductImage from "@/components/ProductImage";
+import {
+  getColorHex,
+  getProductColors,
+  getStartingPrice,
+  getStoragePricing,
+  getProductStorages,
+} from "@/lib/product-options";
 import type { PublicProduct } from "@/lib/supabase-products";
-import { Package, ShoppingCart } from "lucide-react";
+import { getWhatsappUrl } from "@/lib/store-settings";
+import { useStoreSettings } from "@/lib/use-store-settings";
+import {  } from "lucide-react";
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 import Link from "next/link";
+
+const MAX_SWATCHES = 5;
 
 function getAvailableStock(product: PublicProduct) {
   return Math.max(product.stock - product.reservedStock, 0);
-}
-
-function getFinalPrice(product: PublicProduct) {
-  return product.salePrice ?? product.price;
 }
 
 export default function PublicProductCard({
@@ -17,99 +26,133 @@ export default function PublicProductCard({
 }: {
   product: PublicProduct;
 }) {
+  const settings = useStoreSettings();
+
   const availableStock = getAvailableStock(product);
-  const finalPrice = getFinalPrice(product);
+  const colors = getProductColors(product);
+  const hasStorages = getProductStorages(product).length > 0;
+
+  // Con capacidades se muestra el precio "Desde"; sin ellas, el precio normal
+  const starting = getStartingPrice(product);
+  const pricing = getStoragePricing(product, 0);
+  const showOffer = !hasStorages && pricing.salePrice !== null;
+
+  const discount = showOffer
+    ? Math.round(((pricing.price - (pricing.salePrice ?? 0)) / pricing.price) * 100)
+    : null;
+
+  const whatsappUrl = getWhatsappUrl(
+    settings.whatsappMain,
+    `Hola RCA IMPORT, quiero consultar por: ${product.name} (S/ ${starting.final}). ¿Está disponible?`
+  );
 
   return (
-    <article className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-200/60 transition hover:-translate-y-1 hover:shadow-2xl">
+    <article className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white p-2.5 text-slate-950 shadow-sm transition hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-slate-200 sm:p-3">
       <Link
         href={`/producto/${product.slug}`}
-        className="relative block overflow-hidden rounded-[1.5rem] bg-[#edf4fb]"
+        className="relative block overflow-hidden rounded-xl"
       >
-        <div className="absolute left-4 top-4 z-10 rounded-full bg-white px-4 py-2 text-xs font-black text-slate-950 shadow-sm">
-          {product.countryFlag} {product.country}
-        </div>
-
-        <div className="absolute right-4 top-4 z-10 rounded-full bg-[#E31B23] px-4 py-2 text-xs font-black text-white shadow-sm">
+        <span className="absolute left-2 top-2 z-10 rounded-md bg-alert px-2 py-0.5 text-[10px] font-bold text-white shadow-sm sm:left-2.5 sm:top-2.5">
           {product.tag || "Nuevo"}
-        </div>
+        </span>
 
-        <div className="flex h-64 items-center justify-center p-6">
-          {product.imageUrl ? (
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              className="h-full w-full object-contain transition duration-300 hover:scale-105"
-            />
-          ) : (
-            <Package className="text-slate-700" size={74} />
-          )}
+        <span className="absolute right-2.5 top-2.5 z-10 hidden rounded-md bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-950 shadow-sm ring-1 ring-line sm:inline-block">
+          {product.countryFlag} {product.country}
+        </span>
+
+        <div className="transition duration-500 group-hover:scale-105">
+          <ProductImage
+            src={product.imageUrl}
+            alt={product.name}
+            sizes="(max-width: 640px) 50vw, (max-width: 1280px) 50vw, 33vw"
+          />
         </div>
       </Link>
 
-      <div className="px-2 py-5">
-        <p className="text-sm font-black text-slate-500">
+      <div className="flex flex-1 flex-col px-0.5 pb-0.5 pt-3 sm:px-1">
+        <p className="truncate text-[10px] font-bold uppercase tracking-wider text-brand sm:text-[11px]">
           {product.category}
-          <span className="mx-2 text-slate-300">·</span>
-          <span className="text-[#0057A8]">{product.brand}</span>
+          <span className="mx-1.5 text-slate-300">·</span>
+          <span className="text-slate-500">{product.brand}</span>
         </p>
 
         <Link href={`/producto/${product.slug}`}>
-          <h3 className="mt-3 line-clamp-2 text-2xl font-black leading-tight text-slate-950 hover:text-[#0057A8]">
+          <h3 className="mt-1.5 line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-snug text-slate-950 transition hover:text-brand sm:mt-2">
             {product.name}
           </h3>
         </Link>
 
-        <div className="mt-4 flex items-end gap-3">
-          <p className="text-3xl font-black text-slate-950">S/ {finalPrice}</p>
+        {colors.length > 0 && (
+          <div className="mt-2 flex items-center gap-1.5">
+            {colors.slice(0, MAX_SWATCHES).map((color) => (
+              <span
+                key={color.name}
+                title={color.name}
+                className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-inner sm:h-4 sm:w-4"
+                style={{ backgroundColor: getColorHex(color) }}
+              />
+            ))}
 
-          {product.salePrice && (
-            <p className="pb-1 text-lg font-black text-slate-400 line-through">
-              S/ {product.price}
-            </p>
-          )}
-        </div>
+            {colors.length > MAX_SWATCHES && (
+              <span className="text-[10px] font-semibold text-slate-500">
+                +{colors.length - MAX_SWATCHES}
+              </span>
+            )}
+          </div>
+        )}
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-blue-50 px-4 py-2 text-xs font-black text-[#0057A8]">
-            Stock: {availableStock}
-          </span>
-
-          {product.featured && (
-            <span className="rounded-full bg-amber-50 px-4 py-2 text-xs font-black text-amber-700">
-              Destacado
+        <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 sm:mt-3">
+          {starting.hasRange && (
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Desde
             </span>
           )}
 
-          {!product.available && (
-            <span className="rounded-full bg-red-50 px-4 py-2 text-xs font-black text-[#E31B23]">
+          <p className="text-lg font-bold sm:text-xl">S/ {starting.final}</p>
+
+          {showOffer && (
+            <p className="text-xs font-medium text-slate-400 line-through sm:text-sm">
+              S/ {pricing.price}
+            </p>
+          )}
+
+          {discount && discount > 0 && (
+            <span className="rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-alert sm:px-2 sm:text-[11px]">
+              -{discount}%
+            </span>
+          )}
+        </div>
+
+        <div className="mt-2 hidden flex-wrap gap-1.5 sm:flex">
+          {product.available && availableStock > 0 ? (
+            <span className="rounded-md bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+              Disponible
+            </span>
+          ) : (
+            <span className="rounded-md bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-alert">
               No disponible
             </span>
           )}
+
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-2">
+        <div className="mt-auto flex gap-2 pt-3">
           <Link
             href={`/producto/${product.slug}`}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#0057A8] px-4 text-sm font-black text-white transition hover:bg-blue-700"
+            className="inline-flex h-9 flex-1 items-center justify-center rounded-lg bg-brand px-3 text-xs font-semibold text-white transition hover:bg-brand-hover sm:text-[13px]"
           >
-            <ShoppingCart size={16} />
-            Comprar
+            Ver producto
           </Link>
 
-          <Link
-            href={`/separar?producto=${product.slug}`}
-            className="inline-flex h-12 items-center justify-center rounded-2xl bg-[#E31B23] px-4 text-sm font-black text-white transition hover:bg-red-700"
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Consultar por ${product.name} en WhatsApp`}
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-green-500 text-white transition hover:bg-green-600"
           >
-            Separar
-          </Link>
-
-          <Link
-            href={`/producto/${product.slug}`}
-            className="inline-flex h-12 items-center justify-center rounded-2xl bg-[#f1f5f9] px-4 text-sm font-black text-slate-700 transition hover:bg-slate-200"
-          >
-            Detalle
-          </Link>
+            <WhatsAppIcon size={17} />
+          </a>
         </div>
       </div>
     </article>

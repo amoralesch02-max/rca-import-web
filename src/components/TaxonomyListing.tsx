@@ -3,24 +3,50 @@
 import PublicProductCard from "@/components/PublicProductCard";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
-import {
-  getSupabaseProducts,
-  type PublicProduct,
-} from "@/lib/supabase-products";
-import {
-  getSupabaseCategories,
-  type PublicCategory,
-} from "@/lib/supabase-taxonomies";
+import type { PublicProduct } from "@/lib/supabase-products";
 import {
   Boxes,
   ChevronDown,
+  ChevronRight,
   RefreshCw,
   Search,
   SlidersHorizontal,
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+
+/**
+ * Listado reutilizable con el MISMO diseño del catálogo
+ * (panel lateral de filtros + buscador + orden + cuadrícula).
+ * Lo usan las páginas de categoría, marca y país: cada una solo
+ * pasa los productos ya filtrados.
+ */
+
+export type FacetField = "category" | "brand" | "country" | "condition";
+
+type SidebarLinks = {
+  title: string;
+  items: { label: string; href: string; active: boolean }[];
+};
+
+type TaxonomyListingProps = {
+  /** Migas de pan intermedias, ej: "Marca" */
+  sectionLabel?: string;
+  title: string;
+  /** Opcional: emoji o prefijo antes del título (ej. bandera) */
+  titlePrefix?: string;
+  description: string;
+  products: PublicProduct[];
+  loading: boolean;
+  searchPlaceholder: string;
+  /** Qué atributos se ofrecen como filtros con casillas en el panel lateral */
+  facets: FacetField[];
+  /** Opcional: lista de enlaces a páginas hermanas (ej. otras categorías) */
+  sidebarLinks?: SidebarLinks;
+  emptyTitle: string;
+  emptyText: string;
+};
 
 const sortOptions = [
   "Orden recomendado",
@@ -30,6 +56,13 @@ const sortOptions = [
   "Nombre Z-A",
   "Mayor stock",
 ];
+
+const facetLabels: Record<FacetField, string> = {
+  category: "Categoría",
+  brand: "Marca",
+  country: "País",
+  condition: "Condición",
+};
 
 const priceRanges = [
   { label: "Menos de S/ 100", min: "", max: "100" },
@@ -54,125 +87,77 @@ function isInStock(product: PublicProduct) {
   );
 }
 
-function toggleInList(list: string[], value: string) {
-  return list.includes(value)
-    ? list.filter((item) => item !== value)
-    : [...list, value];
-}
-
-export default function CatalogPage() {
-  const [products, setProducts] = useState<PublicProduct[]>([]);
-  const [categories, setCategories] = useState<PublicCategory[]>([]);
-  const [loading, setLoading] = useState(true);
-
+export default function TaxonomyListing({
+  sectionLabel,
+  title,
+  titlePrefix,
+  description,
+  products,
+  loading,
+  searchPlaceholder,
+  facets,
+  sidebarLinks,
+  emptyTitle,
+  emptyText,
+}: TaxonomyListingProps) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("Orden recomendado");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
+  const [selectedFacets, setSelectedFacets] = useState<
+    Partial<Record<FacetField, string[]>>
+  >({});
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [onlyDeals, setOnlyDeals] = useState(false);
   const [wholesaleOnly, setWholesaleOnly] = useState(false);
-
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  useEffect(() => {
-    loadCatalogData();
+  function toggleFacet(field: FacetField, value: string) {
+    setSelectedFacets((current) => {
+      const list = current[field] ?? [];
 
-    const searchParams = new URLSearchParams(window.location.search);
-    const type = searchParams.get("tipo");
-
-    if (type === "mayorista") {
-      setWholesaleOnly(true);
-    }
-  }, []);
-
-  async function loadCatalogData() {
-    setLoading(true);
-
-    const [supabaseProducts, supabaseCategories] = await Promise.all([
-      getSupabaseProducts(),
-      getSupabaseCategories(),
-    ]);
-
-    setProducts(supabaseProducts);
-    setCategories(supabaseCategories);
-    setLoading(false);
+      return {
+        ...current,
+        [field]: list.includes(value)
+          ? list.filter((item) => item !== value)
+          : [...list, value],
+      };
+    });
   }
 
   function resetFilters() {
     setSearch("");
     setSort("Orden recomendado");
-    setSelectedCategories([]);
-    setSelectedBrands([]);
-    setSelectedConditions([]);
+    setSelectedFacets({});
     setMinPrice("");
     setMaxPrice("");
     setOnlyAvailable(false);
     setOnlyDeals(false);
     setWholesaleOnly(false);
-
-    if (typeof window !== "undefined") {
-      window.history.replaceState({}, "", "/catalogo");
-    }
   }
 
-  // Opciones de filtro con su cantidad de productos
-  const categoryOptions = useMemo(() => {
-    return categories.map((category) => ({
-      label: category.name,
-      count: products.filter(
-        (product) =>
-          product.category.toLowerCase() === category.name.toLowerCase()
-      ).length,
-    }));
-  }, [categories, products]);
+  // Opciones de cada filtro con su cantidad de productos
+  const facetOptions = useMemo(() => {
+    return facets
+      .map((field) => {
+        const names = Array.from(
+          new Set(products.map((product) => product[field]).filter(Boolean))
+        ).sort((a, b) => a.localeCompare(b));
 
-  const brandOptions = useMemo(() => {
-    const names = Array.from(
-      new Set(products.map((product) => product.brand).filter(Boolean))
-    ).sort((a, b) => a.localeCompare(b));
-
-    return names.map((name) => ({
-      label: name,
-      count: products.filter((product) => product.brand === name).length,
-    }));
-  }, [products]);
-
-  const conditionOptions = useMemo(() => {
-    const names = Array.from(
-      new Set(products.map((product) => product.condition).filter(Boolean))
-    ).sort((a, b) => a.localeCompare(b));
-
-    return names.map((name) => ({
-      label: name,
-      count: products.filter((product) => product.condition === name).length,
-    }));
-  }, [products]);
+        return {
+          field,
+          options: names.map((name) => ({
+            label: name,
+            count: products.filter((product) => product[field] === name)
+              .length,
+          })),
+        };
+      })
+      .filter((facet) => facet.options.length > 1);
+  }, [facets, products]);
 
   const filteredProducts = useMemo(() => {
     let result = [...products];
-
-    if (selectedCategories.length > 0) {
-      const wanted = selectedCategories.map((item) => item.toLowerCase());
-      result = result.filter((product) =>
-        wanted.includes(product.category.toLowerCase())
-      );
-    }
-
-    if (selectedBrands.length > 0) {
-      result = result.filter((product) =>
-        selectedBrands.includes(product.brand)
-      );
-    }
-
-    if (selectedConditions.length > 0) {
-      result = result.filter((product) =>
-        selectedConditions.includes(product.condition)
-      );
-    }
 
     if (search.trim()) {
       const query = search.toLowerCase();
@@ -187,6 +172,14 @@ export default function CatalogPage() {
           product.tag.toLowerCase().includes(query)
       );
     }
+
+    (Object.keys(selectedFacets) as FacetField[]).forEach((field) => {
+      const selected = selectedFacets[field] ?? [];
+
+      if (selected.length > 0) {
+        result = result.filter((product) => selected.includes(product[field]));
+      }
+    });
 
     if (minPrice !== "" && !Number.isNaN(Number(minPrice))) {
       result = result.filter(
@@ -248,11 +241,9 @@ export default function CatalogPage() {
     return result;
   }, [
     products,
-    selectedCategories,
-    selectedBrands,
-    selectedConditions,
     search,
     sort,
+    selectedFacets,
     minPrice,
     maxPrice,
     onlyAvailable,
@@ -262,30 +253,24 @@ export default function CatalogPage() {
 
   const hasPriceFilter = minPrice !== "" || maxPrice !== "";
 
+  const facetSelectionCount = Object.values(selectedFacets).reduce(
+    (sum, list) => sum + (list ?? []).length,
+    0
+  );
+
   const activeFilterCount =
-    selectedCategories.length +
-    selectedBrands.length +
-    selectedConditions.length +
+    facetSelectionCount +
     [hasPriceFilter, onlyAvailable, onlyDeals, wholesaleOnly].filter(Boolean)
       .length;
 
-  // Chips de filtros activos (se muestran sobre la cuadrícula)
+  // Chips de filtros activos (sobre la cuadrícula)
   const activeChips: { label: string; onRemove: () => void }[] = [
-    ...selectedCategories.map((name) => ({
-      label: name,
-      onRemove: () =>
-        setSelectedCategories((list) => list.filter((item) => item !== name)),
-    })),
-    ...selectedBrands.map((name) => ({
-      label: name,
-      onRemove: () =>
-        setSelectedBrands((list) => list.filter((item) => item !== name)),
-    })),
-    ...selectedConditions.map((name) => ({
-      label: name,
-      onRemove: () =>
-        setSelectedConditions((list) => list.filter((item) => item !== name)),
-    })),
+    ...(Object.keys(selectedFacets) as FacetField[]).flatMap((field) =>
+      (selectedFacets[field] ?? []).map((value) => ({
+        label: value,
+        onRemove: () => toggleFacet(field, value),
+      }))
+    ),
     ...(hasPriceFilter
       ? [
           {
@@ -310,39 +295,35 @@ export default function CatalogPage() {
 
   const filtersPanel = (
     <div className="grid gap-6">
-      <FilterGroup title="Categoría">
-        <CheckList
-          options={categoryOptions}
-          selected={selectedCategories}
-          onToggle={(value) =>
-            setSelectedCategories((list) => toggleInList(list, value))
-          }
-        />
-      </FilterGroup>
-
-      {brandOptions.length > 0 && (
-        <FilterGroup title="Marca">
-          <CheckList
-            options={brandOptions}
-            selected={selectedBrands}
-            onToggle={(value) =>
-              setSelectedBrands((list) => toggleInList(list, value))
-            }
-          />
+      {sidebarLinks && sidebarLinks.items.length > 1 && (
+        <FilterGroup title={sidebarLinks.title}>
+          <div className="grid gap-1.5">
+            {sidebarLinks.items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`rounded-lg px-3 py-2 text-sm transition ${
+                  item.active
+                    ? "bg-blue-50 font-semibold text-brand"
+                    : "text-slate-700 hover:bg-bg hover:text-brand"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </FilterGroup>
       )}
 
-      {conditionOptions.length > 0 && (
-        <FilterGroup title="Condición">
+      {facetOptions.map((facet) => (
+        <FilterGroup key={facet.field} title={facetLabels[facet.field]}>
           <CheckList
-            options={conditionOptions}
-            selected={selectedConditions}
-            onToggle={(value) =>
-              setSelectedConditions((list) => toggleInList(list, value))
-            }
+            options={facet.options}
+            selected={selectedFacets[facet.field] ?? []}
+            onToggle={(value) => toggleFacet(facet.field, value)}
           />
         </FilterGroup>
-      )}
+      ))}
 
       <FilterGroup title="Precio">
         <div className="flex items-center gap-2">
@@ -436,7 +417,19 @@ export default function CatalogPage() {
             Inicio
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-slate-700">Catálogo</span>
+          <Link href="/catalogo" className="transition hover:text-brand">
+            Catálogo
+          </Link>
+          {sectionLabel && (
+            <>
+              <span className="mx-2">/</span>
+              <span>{sectionLabel}</span>
+            </>
+          )}
+          <span className="mx-2">/</span>
+          <span className="text-slate-700">
+            {titlePrefix} {title}
+          </span>
         </p>
 
         <div className="mt-6 grid gap-8 lg:grid-cols-[260px_1fr]">
@@ -448,9 +441,10 @@ export default function CatalogPage() {
           </aside>
 
           {/* ============ Contenido ============ */}
-          <div id="catalogo-productos" className="min-w-0">
+          <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-              {wholesaleOnly ? "Catálogo mayorista" : "Todos los productos"}
+              {titlePrefix && <span className="mr-2">{titlePrefix}</span>}
+              {title}
             </h1>
 
             <p className="mt-1 text-sm text-slate-500">
@@ -461,6 +455,12 @@ export default function CatalogPage() {
                   }`}
             </p>
 
+            {description && (
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                {description}
+              </p>
+            )}
+
             {/* Buscador + orden */}
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <div className="flex h-12 flex-1 items-center gap-3 rounded-xl border border-line bg-white px-4 transition focus-within:border-brand">
@@ -469,7 +469,7 @@ export default function CatalogPage() {
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Buscar por producto, marca, categoría o país..."
+                  placeholder={searchPlaceholder}
                   className="h-full w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
                 />
 
@@ -552,7 +552,7 @@ export default function CatalogPage() {
                   className="mx-auto mb-4 animate-spin text-brand"
                   size={36}
                 />
-                <p className="text-sm font-semibold">Cargando catálogo...</p>
+                <p className="text-sm font-semibold">Cargando productos...</p>
               </div>
             ) : filteredProducts.length > 0 ? (
               <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
@@ -565,20 +565,35 @@ export default function CatalogPage() {
                 <Boxes className="mx-auto mb-4 text-slate-300" size={44} />
 
                 <p className="text-lg font-semibold">
-                  No hay productos encontrados.
+                  {products.length === 0
+                    ? emptyTitle
+                    : "No hay productos encontrados."}
                 </p>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  Prueba con otra búsqueda o limpia los filtros aplicados.
+                  {products.length === 0
+                    ? emptyText
+                    : "Prueba con otra búsqueda o limpia los filtros aplicados."}
                 </p>
 
-                <button
-                  type="button"
-                  onClick={resetFilters}
-                  className="mt-5 inline-flex rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-hover"
-                >
-                  Limpiar filtros
-                </button>
+                <div className="mt-5 flex flex-wrap justify-center gap-3">
+                  {activeFilterCount > 0 || search ? (
+                    <button
+                      type="button"
+                      onClick={resetFilters}
+                      className="inline-flex rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-hover"
+                    >
+                      Limpiar filtros
+                    </button>
+                  ) : null}
+
+                  <Link
+                    href="/catalogo"
+                    className="inline-flex rounded-full border border-line px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-brand hover:text-brand"
+                  >
+                    Ver todo el catálogo
+                  </Link>
+                </div>
               </div>
             )}
           </div>

@@ -1,5 +1,11 @@
 import { supabase } from "@/lib/supabase";
 import { type Product } from "@/data/products";
+import {
+  parseColorOptions,
+  parseStorageOptions,
+  type ColorOption,
+  type StorageOption,
+} from "@/lib/product-options";
 
 type SupabaseProduct = {
   id: string;
@@ -18,6 +24,8 @@ type SupabaseProduct = {
   description: string;
   features: string[];
   variants: string[];
+  color_options?: unknown;
+  storage_options?: unknown;
   image_url: string;
   gallery: string[];
   video_url: string;
@@ -33,6 +41,8 @@ type SupabaseProduct = {
 
 export type PublicProduct = Omit<Product, "country" | "condition"> & {
   dbId?: string;
+  colorOptions?: ColorOption[];
+  storageOptions?: StorageOption[];
   country: string;
   condition: string;
   visible?: boolean;
@@ -67,6 +77,8 @@ export type CreateProductInput = {
   description: string;
   features: string[];
   variants: string[];
+  colorOptions?: ColorOption[];
+  storageOptions?: StorageOption[];
   imageUrl: string;
   gallery: string[];
   videoUrl: string;
@@ -94,6 +106,8 @@ export type UpdateFullProductInput = {
   description: string;
   features: string[];
   variants: string[];
+  colorOptions?: ColorOption[];
+  storageOptions?: StorageOption[];
   imageUrl: string;
   gallery: string[];
   videoUrl: string;
@@ -124,6 +138,8 @@ function mapSupabaseProduct(product: SupabaseProduct): PublicProduct {
     description: product.description,
     features: product.features ?? [],
     variants: product.variants ?? [],
+    colorOptions: parseColorOptions(product.color_options),
+    storageOptions: parseStorageOptions(product.storage_options),
     imageUrl: product.image_url ?? "",
     gallery: product.gallery ?? [],
     videoUrl: product.video_url ?? "",
@@ -285,6 +301,8 @@ export async function createSupabaseProduct(input: CreateProductInput) {
     description: input.description,
     features: input.features,
     variants: input.variants,
+    color_options: input.colorOptions ?? [],
+    storage_options: input.storageOptions ?? [],
     image_url: input.imageUrl,
     gallery: input.gallery,
     video_url: input.videoUrl,
@@ -334,6 +352,8 @@ export async function updateSupabaseFullProductBySlug(
       description: input.description,
       features: input.features,
       variants: input.variants,
+      color_options: input.colorOptions ?? [],
+      storage_options: input.storageOptions ?? [],
       image_url: input.imageUrl,
       gallery: input.gallery,
       video_url: input.videoUrl,
