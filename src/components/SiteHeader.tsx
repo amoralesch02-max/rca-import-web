@@ -22,7 +22,8 @@ import {
 } from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { motion, useScroll, useSpring } from "motion/react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type CartItem = {
   quantity: number;
@@ -63,6 +64,39 @@ export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [cartOpen, setCartOpen] = useState(false);
+  const [bump, setBump] = useState(false);
+  const previousCount = useRef(0);
+
+  // Barra de progreso de lectura (línea fina al pie del header)
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 30,
+    restDelta: 0.001,
+  });
+
+  // El carrito "rebota" solo cuando se AGREGA un producto
+  // (no al cargar la página ni al quitar productos)
+  useEffect(() => {
+    previousCount.current = getCartCount();
+
+    function handleCartUpdated() {
+      const next = getCartCount();
+
+      if (next > previousCount.current) {
+        setBump(true);
+        window.setTimeout(() => setBump(false), 500);
+      }
+
+      previousCount.current = next;
+    }
+
+    window.addEventListener("rca-cart-updated", handleCartUpdated);
+
+    return () => {
+      window.removeEventListener("rca-cart-updated", handleCartUpdated);
+    };
+  }, []);
 
   useEffect(() => {
     async function loadSettings() {
@@ -176,7 +210,7 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setCartOpen(true)}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white text-slate-950 transition hover:border-brand hover:text-brand"
+              className={`relative flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white text-slate-950 transition hover:border-brand hover:text-brand ${bump ? "animate-bump" : ""}`}
               aria-label="Ver carrito"
             >
               <ShoppingCart size={18} />
@@ -204,7 +238,7 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setCartOpen(true)}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white text-slate-950"
+              className={`relative flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white text-slate-950 ${bump ? "animate-bump" : ""}`}
               aria-label="Ver carrito"
             >
               <ShoppingCart size={18} />
@@ -267,6 +301,12 @@ export default function SiteHeader() {
             </div>
           </div>
         )}
+
+        <motion.div
+          aria-hidden="true"
+          style={{ scaleX: progress }}
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] origin-left bg-alert"
+        />
       </header>
 
       <CartDrawer

@@ -120,7 +120,11 @@ export default function SiteFooter() {
         aria-label="Escribir por WhatsApp"
         className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-xl shadow-slate-950/30 transition hover:scale-105 hover:bg-green-600"
       >
-        <WhatsAppIcon size={26} />
+        <span
+          aria-hidden="true"
+          className="wa-pulse pointer-events-none absolute inset-0 rounded-full bg-green-500"
+        />
+        <WhatsAppIcon size={26} className="relative" />
       </a>
 
       <div className="mx-auto max-w-7xl px-5 py-12 md:px-6">

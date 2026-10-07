@@ -89,6 +89,9 @@ export default function ProductMediaGallery({
   const [selectedUrl, setSelectedUrl] = useState(slides[0]?.url ?? "");
   const mounted = useRef(false);
 
+  // Zoom al pasar el mouse (solo con mouse; en celular no se activa)
+  const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
+
   // Al elegir un color desde los botones, se muestra la foto de ese color.
   // (No se ejecuta al cargar: al inicio se ve la foto principal del producto.)
   useEffect(() => {
@@ -144,11 +147,39 @@ export default function ProductMediaGallery({
           {product.countryFlag} Importado de {product.country}
         </span>
 
-        <div className="relative aspect-square">
+        <div
+          className={`relative aspect-square ${hasSlides ? "cursor-zoom-in" : ""}`}
+          onPointerMove={(event) => {
+            if (event.pointerType !== "mouse") return;
+
+            const box = event.currentTarget.getBoundingClientRect();
+
+            setZoom({
+              x: ((event.clientX - box.left) / box.width) * 100,
+              y: ((event.clientY - box.top) / box.height) * 100,
+            });
+          }}
+          onPointerLeave={() => setZoom(null)}
+        >
           {hasSlides ? (
             <>
               {/* La key hace que la foto aparezca con un suave desvanecido */}
-              <div key={selectedUrl} className="animate-fade-in absolute inset-0">
+              <div
+                key={selectedUrl}
+                className="animate-fade-in absolute inset-0"
+                style={
+                  zoom
+                    ? {
+                        transform: "scale(1.9)",
+                        transformOrigin: `${zoom.x}% ${zoom.y}%`,
+                        transition: "transform 0.15s ease-out",
+                      }
+                    : {
+                        transform: "scale(1)",
+                        transition: "transform 0.3s ease-out",
+                      }
+                }
+              >
                 <ProductImage
                   src={slides[selectedIndex]?.url}
                   alt={product.name}

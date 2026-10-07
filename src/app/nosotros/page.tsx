@@ -1,5 +1,7 @@
 "use client";
 
+import CountUp from "@/components/CountUp";
+import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import {
@@ -186,7 +188,7 @@ export default function AboutPage() {
             {stats.map((item) => (
               <div key={item.label} className="text-center">
                 <p className="text-3xl font-bold text-brand md:text-4xl">
-                  {item.value}
+                  <CountUp value={item.value} />
                 </p>
                 <p className="mt-1 text-xs font-medium text-slate-500 md:text-sm">
                   {item.label}
@@ -207,11 +209,9 @@ export default function AboutPage() {
         </p>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {values.map((item) => (
-            <div
-              key={item.title}
-              className="rounded-2xl border border-line bg-white p-6"
-            >
+          {values.map((item, index) => (
+            <Reveal key={item.title} delay={index * 0.08} className="h-full">
+            <div className="h-full rounded-2xl border border-line bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-brand">
                 <item.icon size={20} />
               </div>
@@ -222,6 +222,7 @@ export default function AboutPage() {
                 {item.text}
               </p>
             </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -273,9 +274,13 @@ export default function AboutPage() {
             </div>
           ) : visibleDeliveries.length > 0 ? (
             <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {visibleDeliveries.map((delivery) => (
-                <article
+              {visibleDeliveries.map((delivery, index) => (
+                <Reveal
                   key={delivery.id}
+                  delay={(index % 3) * 0.08}
+                  className="h-full"
+                >
+                <article
                   className="group overflow-hidden rounded-2xl border border-line bg-bg transition hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-slate-200"
                 >
                   <button
@@ -335,6 +340,7 @@ export default function AboutPage() {
                     </div>
                   </div>
                 </article>
+                </Reveal>
               ))}
             </div>
           ) : (

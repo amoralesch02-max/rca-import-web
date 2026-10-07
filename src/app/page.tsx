@@ -3,7 +3,9 @@
 import HeroCarousel, {
   type HeroCarouselItem,
 } from "@/components/HeroCarousel";
+import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import PublicProductCard from "@/components/PublicProductCard";
+import Reveal from "@/components/Reveal";
 import ScrollToTop from "@/components/ScrollToTop";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
@@ -188,8 +190,17 @@ export default function HomePage() {
 
       {/* ================= HERO ================= */}
       <section className="hero-bg hero-grid border-b border-slate-800 text-white">
+        <div
+          aria-hidden="true"
+          className="animate-drift pointer-events-none absolute -left-24 top-8 h-72 w-72 rounded-full bg-sky-400/25 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="animate-drift-slow pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-alert/25 blur-3xl"
+        />
+
         <div className={`${container} relative z-10 py-6 md:py-10`}>
-          <div className="mx-auto max-w-2xl text-center">
+          <Reveal y={16} className="mx-auto max-w-2xl text-center">
             <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3.5 py-1 text-[11px] font-semibold tracking-wide text-blue-100 backdrop-blur">
               {HERO.badge}
             </span>
@@ -203,10 +214,14 @@ export default function HomePage() {
             </h1>
 
             <p className="mt-2 text-sm text-blue-100/90">{HERO.tagline}</p>
-          </div>
+          </Reveal>
 
           {/* Productos estrella: son los protagonistas */}
-          <div className="relative mx-auto mt-4 max-w-3xl md:mt-6">
+          <Reveal
+            scale={0.94}
+            delay={0.15}
+            className="relative mx-auto mt-4 max-w-3xl md:mt-6"
+          >
             {lowestPrice !== null && (
               <div className="absolute left-0 top-0 z-[250] rounded-xl bg-white px-3.5 py-2 text-slate-950 shadow-lg sm:px-4 sm:py-2.5">
                 <p className="text-sm font-bold">Desde S/ {lowestPrice}</p>
@@ -217,7 +232,7 @@ export default function HomePage() {
             )}
 
             <HeroCarousel items={carouselItems} />
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -285,16 +300,21 @@ export default function HomePage() {
         </div>
 
         <div className="mt-5 grid grid-cols-3 gap-2.5 sm:gap-3 lg:grid-cols-6">
-          {homeCategories.map((category) => {
+          {homeCategories.map((category, index) => {
             const Icon = getCategoryIcon(category.name, category.slug);
 
             return (
-              <Link
+              <Reveal
                 key={category.slug}
-                href={`/categoria/${category.slug}`}
-                className="group flex flex-col items-center gap-2.5 rounded-2xl border border-line bg-white px-2 py-4 text-center transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg hover:shadow-slate-200 sm:gap-3 sm:py-5"
+                delay={index * 0.05}
+                y={18}
+                className="h-full"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-brand transition group-hover:bg-brand group-hover:text-white sm:h-12 sm:w-12">
+              <Link
+                href={`/categoria/${category.slug}`}
+                className="group flex h-full flex-col items-center gap-2.5 rounded-2xl border border-line bg-white px-2 py-4 text-center transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg hover:shadow-slate-200 sm:gap-3 sm:py-5"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-brand transition duration-300 group-hover:-rotate-6 group-hover:scale-110 group-hover:bg-brand group-hover:text-white sm:h-12 sm:w-12">
                   <Icon size={22} strokeWidth={1.8} />
                 </div>
 
@@ -302,6 +322,7 @@ export default function HomePage() {
                   {category.name}
                 </p>
               </Link>
+              </Reveal>
             );
           })}
         </div>
@@ -324,13 +345,19 @@ export default function HomePage() {
           </div>
 
           {loading ? (
-            <div className="mt-5 rounded-2xl border border-line bg-white p-10 text-center text-sm text-slate-500">
-              Cargando productos...
+            <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
             </div>
           ) : featuredProducts.length > 0 ? (
             <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
-              {featuredProducts.map((product) => (
-                <PublicProductCard key={product.slug} product={product} />
+              {featuredProducts.map((product, index) => (
+                <PublicProductCard
+                  key={product.slug}
+                  product={product}
+                  index={index}
+                />
               ))}
             </div>
           ) : (
@@ -393,6 +420,7 @@ export default function HomePage() {
 
       {/* ================= CTA WHATSAPP ================= */}
       <section className={`${container} pb-10 md:pb-14`}>
+        <Reveal>
         <div className="cta-gradient flex flex-col items-start justify-between gap-5 rounded-3xl p-7 text-white md:flex-row md:items-center md:p-10">
           <div>
             <h2 className="text-xl font-bold md:text-3xl">
@@ -413,6 +441,7 @@ export default function HomePage() {
             Hablar con un asesor
           </a>
         </div>
+        </Reveal>
       </section>
 
       {/* ================= PREGUNTAS FRECUENTES ================= */}
@@ -423,9 +452,9 @@ export default function HomePage() {
           </h2>
 
           <div className="mt-6 grid gap-3">
-            {faqs.map((item) => (
+            {faqs.map((item, index) => (
+              <Reveal key={item.q} delay={index * 0.07} y={16}>
               <details
-                key={item.q}
                 className="group rounded-xl border border-line bg-white px-5 py-4 open:border-brand/50"
               >
                 <summary className="flex cursor-pointer items-center justify-between gap-4 text-sm font-semibold">
@@ -439,6 +468,7 @@ export default function HomePage() {
                   {item.a}
                 </p>
               </details>
+              </Reveal>
             ))}
           </div>
         </div>

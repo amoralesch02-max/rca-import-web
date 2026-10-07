@@ -1,5 +1,6 @@
 "use client";
 
+import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import PublicProductCard from "@/components/PublicProductCard";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
@@ -8,7 +9,6 @@ import {
   Boxes,
   ChevronDown,
   ChevronRight,
-  RefreshCw,
   Search,
   SlidersHorizontal,
   X,
@@ -547,17 +547,19 @@ export default function TaxonomyListing({
 
             {/* Resultados */}
             {loading ? (
-              <div className="mt-6 rounded-2xl border border-line bg-white p-10 text-center">
-                <RefreshCw
-                  className="mx-auto mb-4 animate-spin text-brand"
-                  size={36}
-                />
-                <p className="text-sm font-semibold">Cargando productos...</p>
+              <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <ProductCardSkeleton key={i} />
+                ))}
               </div>
             ) : filteredProducts.length > 0 ? (
               <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
-                {filteredProducts.map((product) => (
-                  <PublicProductCard key={product.slug} product={product} />
+                {filteredProducts.map((product, index) => (
+                <PublicProductCard
+                  key={product.slug}
+                  product={product}
+                  index={index}
+                />
                 ))}
               </div>
             ) : (

@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -191,20 +192,33 @@ export default function CartDrawer({
     return getWhatsappUrl(whatsappNumber, message);
   }, [whatsappNumber, cart, total]);
 
-  if (!open) {
-    return null;
-  }
-
   return (
-    <div className="fixed inset-0 z-[70]" role="dialog" aria-label="Tu carrito">
+    <AnimatePresence>
+      {open && (
+    <motion.div
+      key="cart-drawer"
+      className="fixed inset-0 z-[70]"
+      role="dialog"
+      aria-label="Tu carrito"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+    >
       <button
         type="button"
         aria-label="Cerrar carrito"
         onClick={onClose}
-        className="animate-fade-in absolute inset-0 bg-slate-950/50"
+        className="absolute inset-0 bg-slate-950/50"
       />
 
-      <aside className="animate-slide-in-right absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white text-slate-950 shadow-2xl">
+      <motion.aside
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ type: "spring", stiffness: 320, damping: 34 }}
+        className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white text-slate-950 shadow-2xl"
+      >
         {/* Encabezado */}
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <div>
@@ -255,8 +269,14 @@ export default function CartDrawer({
             {/* Productos */}
             <div className="flex-1 overflow-y-auto px-5 py-4">
               <ul className="grid gap-4">
+                <AnimatePresence initial={false}>
                 {cart.map((item) => (
-                  <li
+                  <motion.li
+                    layout
+                    initial={{ opacity: 0, x: 24 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 60 }}
+                    transition={{ duration: 0.3 }}
                     key={`${item.productId}-${item.variant}`}
                     className="flex gap-3 rounded-2xl border border-line p-3"
                   >
@@ -334,8 +354,9 @@ export default function CartDrawer({
                         </p>
                       </div>
                     </div>
-                  </li>
+                  </motion.li>
                 ))}
+                </AnimatePresence>
               </ul>
             </div>
 
@@ -372,7 +393,9 @@ export default function CartDrawer({
             </div>
           </>
         )}
-      </aside>
-    </div>
+      </motion.aside>
+    </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

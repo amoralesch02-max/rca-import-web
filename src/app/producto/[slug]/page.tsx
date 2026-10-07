@@ -36,6 +36,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -367,9 +368,15 @@ export default function ProductDetailPage() {
 
             {/* Precio */}
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <p className="text-3xl font-bold tracking-tight">
+              <motion.p
+                key={finalPrice}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="text-3xl font-bold tracking-tight"
+              >
                 S/ {finalPrice}
-              </p>
+              </motion.p>
 
               {pricing.salePrice && (
                 <p className="text-base font-medium text-slate-400 line-through">
@@ -495,10 +502,11 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-              {relatedProducts.map((relatedProduct) => (
+              {relatedProducts.map((relatedProduct, index) => (
                 <PublicProductCard
                   key={relatedProduct.slug}
                   product={relatedProduct}
+                  index={index}
                 />
               ))}
             </div>

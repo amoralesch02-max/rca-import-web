@@ -123,3 +123,98 @@ details > summary::-webkit-details-marker {
   from { width: 0%; }
   to { width: 100%; }
 }
+
+/* ============================================================
+   ANIMACIONES Y EFECTOS
+   ============================================================ */
+
+/* Transición entre páginas (solo opacidad) */
+@keyframes page-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-page-in {
+  animation: page-in 0.4s ease-out;
+}
+
+/* Círculos de luz que se mueven despacio detrás del encabezado del inicio */
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(28px, -22px) scale(1.12); }
+}
+
+.animate-drift {
+  animation: drift 11s ease-in-out infinite;
+}
+
+.animate-drift-slow {
+  animation: drift 16s ease-in-out infinite reverse;
+}
+
+/* Degradado del banner de contacto que se desplaza lentamente */
+.cta-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 9s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Brillo de carga (tarjetas fantasma) */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #e8edf5 25%,
+    #f5f8fc 37%,
+    #e8edf5 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+/* Rebote del carrito al agregar un producto */
+@keyframes bump {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.28); }
+  60% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+.animate-bump {
+  animation: bump 0.45s ease-out;
+}
+
+/* Pulso suave del botón flotante de WhatsApp */
+@keyframes wa-pulse {
+  0% { transform: scale(1); opacity: 0.45; }
+  70%, 100% { transform: scale(1.75); opacity: 0; }
+}
+
+.wa-pulse {
+  animation: wa-pulse 3.2s ease-out infinite;
+}
+
+/* Efecto de "presionar" en botones redondeados */
+[class~="rounded-full"]:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+/* Si el dispositivo pide menos movimiento, se apagan las animaciones */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

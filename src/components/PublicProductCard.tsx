@@ -13,6 +13,7 @@ import { getWhatsappUrl } from "@/lib/store-settings";
 import { useStoreSettings } from "@/lib/use-store-settings";
 import {  } from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
+import { motion } from "motion/react";
 import Link from "next/link";
 
 const MAX_SWATCHES = 5;
@@ -23,8 +24,11 @@ function getAvailableStock(product: PublicProduct) {
 
 export default function PublicProductCard({
   product,
+  index = 0,
 }: {
   product: PublicProduct;
+  /** Posición en la lista: sirve para que las tarjetas entren una tras otra */
+  index?: number;
 }) {
   const settings = useStoreSettings();
 
@@ -47,7 +51,18 @@ export default function PublicProductCard({
   );
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white p-2.5 text-slate-950 shadow-sm transition hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-slate-200 sm:p-3">
+    <motion.div
+      className="h-full"
+      initial={{ opacity: 0, y: 22 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "0px 0px -40px 0px" }}
+      transition={{
+        duration: 0.5,
+        delay: (index % 4) * 0.07,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+    >
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white p-2.5 text-slate-950 shadow-sm transition hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-slate-200 sm:p-3">
       <Link
         href={`/producto/${product.slug}`}
         className="relative block overflow-hidden rounded-xl"
@@ -156,5 +171,6 @@ export default function PublicProductCard({
         </div>
       </div>
     </article>
+    </motion.div>
   );
 }
