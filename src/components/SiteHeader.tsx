@@ -154,7 +154,7 @@ export default function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-line bg-white/85 text-slate-950 shadow-sm shadow-slate-200/60 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-line bg-white/95 text-slate-950 shadow-sm shadow-slate-200/60">
         {/* Barra superior fina */}
         <div className="bg-slate-950 text-center text-[11px] font-semibold tracking-wide text-blue-200">
           <p className="mx-auto max-w-7xl px-4 py-1.5">

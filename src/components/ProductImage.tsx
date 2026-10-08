@@ -1,15 +1,18 @@
-import Image from "next/image";
+"use client";
+
 import { Package } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 /**
  * Imagen de producto reutilizable (tarjetas, carrusel, carrito, galería).
  *
  * - Pensada para fotos CUADRADAS (ej. 1254 x 1254): llenan todo el marco.
- * - Si alguna foto no es cuadrada, se muestra completa y centrada, y los
- *   lados se rellenan con una versión difuminada de la misma foto,
- *   así nunca quedan bordes vacíos ni deformaciones.
- * - Usa next/image: el navegador descarga una versión del tamaño justo
- *   en lugar del archivo original de 1254 px.
+ * - Si una foto NO es cuadrada, se muestra completa y centrada, y los lados
+ *   se rellenan con una versión difuminada de la misma foto.
+ *   Ese relleno solo se dibuja cuando hace falta: con fotos cuadradas no se
+ *   usa ningún desenfoque, lo que mantiene la página fluida.
+ * - Usa next/image: el navegador descarga una versión del tamaño justo.
  *
  * Tamaño: por defecto es un cuadrado de ancho completo. Para otro tamaño,
  * pasa `className` (ej. "h-20 w-20").
@@ -31,6 +34,8 @@ export default function ProductImage({
   fit?: "contain" | "cover";
   className?: string;
 }) {
+  const [needsFill, setNeedsFill] = useState(false);
+
   if (!src) {
     return (
       <div
@@ -43,14 +48,14 @@ export default function ProductImage({
 
   return (
     <div className={`relative overflow-hidden bg-white ${className}`}>
-      {fit === "contain" && (
+      {fit === "contain" && needsFill && (
         <Image
           src={src}
           alt=""
           aria-hidden
           fill
           sizes="48px"
-          className="scale-125 object-cover opacity-70 blur-2xl"
+          className="scale-125 object-cover opacity-70 blur-xl"
         />
       )}
 
@@ -61,6 +66,15 @@ export default function ProductImage({
         sizes={sizes}
         priority={priority}
         className={fit === "cover" ? "object-cover" : "object-contain"}
+        onLoad={(event) => {
+          const image = event.currentTarget;
+
+          if (image.naturalWidth && image.naturalHeight) {
+            const ratio = image.naturalWidth / image.naturalHeight;
+
+            setNeedsFill(Math.abs(ratio - 1) > 0.04);
+          }
+        }}
       />
     </div>
   );

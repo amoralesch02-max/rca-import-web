@@ -150,7 +150,7 @@ export default function HomePage() {
         };
       });
 
-    return [...fromBanners, ...fromProducts].slice(0, 8);
+    return [...fromBanners, ...fromProducts].slice(0, 6);
   }, [banners, featuredProducts]);
 
   const lowestPrice = useMemo(() => {
@@ -190,15 +190,6 @@ export default function HomePage() {
 
       {/* ================= HERO ================= */}
       <section className="hero-bg hero-grid border-b border-slate-800 text-white">
-        <div
-          aria-hidden="true"
-          className="animate-drift pointer-events-none absolute -left-24 top-8 h-72 w-72 rounded-full bg-sky-400/25 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="animate-drift-slow pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-alert/25 blur-3xl"
-        />
-
         <div className={`${container} relative z-10 py-6 md:py-10`}>
           <Reveal y={16} className="mx-auto max-w-2xl text-center">
             <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3.5 py-1 text-[11px] font-semibold tracking-wide text-blue-100 backdrop-blur">
@@ -218,8 +209,8 @@ export default function HomePage() {
 
           {/* Productos estrella: son los protagonistas */}
           <Reveal
-            scale={0.94}
-            delay={0.15}
+            y={12}
+            delay={0.1}
             className="relative mx-auto mt-4 max-w-3xl md:mt-6"
           >
             {lowestPrice !== null && (

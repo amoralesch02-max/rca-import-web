@@ -89,8 +89,9 @@ export default function ProductMediaGallery({
   const [selectedUrl, setSelectedUrl] = useState(slides[0]?.url ?? "");
   const mounted = useRef(false);
 
-  // Zoom al pasar el mouse (solo con mouse; en celular no se activa)
-  const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
+  // Zoom al pasar el mouse (solo con mouse; en celular no se activa).
+  // Se aplica directo al elemento para no volver a dibujar todo el componente.
+  const zoomRef = useRef<HTMLDivElement>(null);
 
   // Al elegir un color desde los botones, se muestra la foto de ese color.
   // (No se ejecuta al cargar: al inicio se ve la foto principal del producto.)
@@ -150,35 +151,28 @@ export default function ProductMediaGallery({
         <div
           className={`relative aspect-square ${hasSlides ? "cursor-zoom-in" : ""}`}
           onPointerMove={(event) => {
-            if (event.pointerType !== "mouse") return;
+            if (event.pointerType !== "mouse" || !zoomRef.current) return;
 
             const box = event.currentTarget.getBoundingClientRect();
+            const x = ((event.clientX - box.left) / box.width) * 100;
+            const y = ((event.clientY - box.top) / box.height) * 100;
 
-            setZoom({
-              x: ((event.clientX - box.left) / box.width) * 100,
-              y: ((event.clientY - box.top) / box.height) * 100,
-            });
+            zoomRef.current.style.transformOrigin = `${x}% ${y}%`;
+            zoomRef.current.style.transform = "scale(1.9)";
           }}
-          onPointerLeave={() => setZoom(null)}
+          onPointerLeave={() => {
+            if (zoomRef.current) {
+              zoomRef.current.style.transform = "scale(1)";
+            }
+          }}
         >
           {hasSlides ? (
             <>
               {/* La key hace que la foto aparezca con un suave desvanecido */}
               <div
                 key={selectedUrl}
-                className="animate-fade-in absolute inset-0"
-                style={
-                  zoom
-                    ? {
-                        transform: "scale(1.9)",
-                        transformOrigin: `${zoom.x}% ${zoom.y}%`,
-                        transition: "transform 0.15s ease-out",
-                      }
-                    : {
-                        transform: "scale(1)",
-                        transition: "transform 0.3s ease-out",
-                      }
-                }
+                ref={zoomRef}
+                className="animate-fade-in absolute inset-0 transition-transform duration-200 ease-out"
               >
                 <ProductImage
                   src={slides[selectedIndex]?.url}

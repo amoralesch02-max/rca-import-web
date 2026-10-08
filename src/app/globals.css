@@ -120,64 +120,37 @@ details > summary::-webkit-details-marker {
 
 /* Barra de progreso del avance automático del carrusel */
 @keyframes progress-fill {
-  from { width: 0%; }
-  to { width: 100%; }
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 /* ============================================================
    ANIMACIONES Y EFECTOS
    ============================================================ */
 
-/* Transición entre páginas (solo opacidad) */
-@keyframes page-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.animate-page-in {
-  animation: page-in 0.4s ease-out;
-}
-
-/* Círculos de luz que se mueven despacio detrás del encabezado del inicio */
-@keyframes drift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(28px, -22px) scale(1.12); }
-}
-
-.animate-drift {
-  animation: drift 11s ease-in-out infinite;
-}
-
-.animate-drift-slow {
-  animation: drift 16s ease-in-out infinite reverse;
-}
-
-/* Degradado del banner de contacto que se desplaza lentamente */
-.cta-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 9s ease infinite;
-}
-
-@keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-/* Brillo de carga (tarjetas fantasma) */
+/* Brillo de carga (tarjetas fantasma): solo se desplaza una capa, es liviano */
 .skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #e8edf5;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
   background: linear-gradient(
     90deg,
-    #e8edf5 25%,
-    #f5f8fc 37%,
-    #e8edf5 63%
+    transparent,
+    rgba(255, 255, 255, 0.65),
+    transparent
   );
-  background-size: 400% 100%;
-  animation: shimmer 1.4s ease infinite;
+  animation: shimmer-slide 1.4s ease-in-out infinite;
 }
 
-@keyframes shimmer {
-  0% { background-position: 100% 50%; }
-  100% { background-position: 0 50%; }
+@keyframes shimmer-slide {
+  to { transform: translateX(100%); }
 }
 
 /* Rebote del carrito al agregar un producto */

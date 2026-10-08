@@ -53,12 +53,12 @@ export default function PublicProductCard({
   return (
     <motion.div
       className="h-full"
-      initial={{ opacity: 0, y: 22 }}
+      initial={{ opacity: 0, y: 14 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "0px 0px -40px 0px" }}
       transition={{
-        duration: 0.5,
-        delay: (index % 4) * 0.07,
+        duration: 0.4,
+        delay: (index % 4) * 0.05,
         ease: [0.22, 1, 0.36, 1],
       }}
     >

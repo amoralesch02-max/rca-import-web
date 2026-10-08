@@ -88,17 +88,30 @@ export default function HeroCarousel({
   useEffect(() => {
     if (!dragging) return;
 
-    function handleMove(event: PointerEvent) {
-      const diff = event.clientX - startX.current;
+    let frame = 0;
+    let latest = 0;
 
-      if (Math.abs(diff) > 6) {
+    function handleMove(event: PointerEvent) {
+      latest = event.clientX - startX.current;
+
+      if (Math.abs(latest) > 6) {
         moved.current = true;
       }
 
-      setDragX(diff);
+      if (!frame) {
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          setDragX(latest);
+        });
+      }
     }
 
     function handleUp(event: PointerEvent) {
+      if (frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
+
       const diff = event.clientX - startX.current;
       const jump = clamp(Math.round(-diff / step), -2, 2);
 
@@ -117,6 +130,7 @@ export default function HeroCarousel({
     window.addEventListener("pointercancel", handleUp);
 
     return () => {
+      if (frame) cancelAnimationFrame(frame);
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
       window.removeEventListener("pointercancel", handleUp);
@@ -165,19 +179,26 @@ export default function HeroCarousel({
           }
         }}
       >
-        {/* Brillo detrás de la tarjeta central */}
+        {/* Brillo detrás de la tarjeta central (degradado, sin desenfoque: más liviano) */}
         <div
-          className="pointer-events-none absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/25 blur-3xl"
-          style={{ width: cardWidth * 1.3, height: cardWidth * 1.1 }}
+          className="pointer-events-none absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            width: cardWidth * 1.5,
+            height: cardWidth * 1.3,
+            background:
+              "radial-gradient(closest-side, rgba(255,255,255,0.28), transparent)",
+          }}
         />
 
         {/* Sombra en el piso */}
         <div
-          className="pointer-events-none absolute left-1/2 -translate-x-1/2 rounded-[50%] bg-slate-950/40 blur-xl"
+          className="pointer-events-none absolute left-1/2 -translate-x-1/2 rounded-[50%]"
           style={{
-            bottom: 26,
-            width: cardWidth * 0.8,
-            height: 22,
+            bottom: 24,
+            width: cardWidth * 0.85,
+            height: 30,
+            background:
+              "radial-gradient(closest-side, rgba(2,6,23,0.45), transparent)",
           }}
         />
 
@@ -216,6 +237,7 @@ export default function HeroCarousel({
                   opacity: visible ? opacity : 0,
                   zIndex: 100 - Math.round(abs * 10),
                   pointerEvents: visible ? "auto" : "none",
+                  visibility: visible ? "visible" : "hidden",
                   transition: dragging
                     ? "none"
                     : "transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.7s ease",
@@ -223,7 +245,7 @@ export default function HeroCarousel({
                 }}
                 aria-hidden={!isCenter}
               >
-                <div className={isCenter && !dragging ? "animate-float" : ""}>
+                <div>
                   <Link
                     href={item.href}
                     draggable={false}
@@ -234,7 +256,7 @@ export default function HeroCarousel({
                         goTo(i);
                       }
                     }}
-                    className={`block overflow-hidden rounded-3xl bg-white text-slate-950 shadow-2xl shadow-slate-950/40 transition-shadow ${
+                    className={`block overflow-hidden rounded-3xl bg-white text-slate-950 shadow-lg shadow-slate-950/30 ${
                       isCenter ? "ring-2 ring-white" : "ring-1 ring-white/40"
                     }`}
                   >
@@ -306,13 +328,12 @@ export default function HeroCarousel({
               {i === index && (
                 <span
                   key={index}
-                  className="absolute inset-y-0 left-0 rounded-full bg-white"
+                  className="absolute inset-0 origin-left rounded-full bg-white"
                   style={{
                     animation: reduceMotion
                       ? "none"
                       : `progress-fill ${AUTOPLAY_MS}ms linear forwards`,
                     animationPlayState: paused || dragging ? "paused" : "running",
-                    width: reduceMotion ? "100%" : undefined,
                   }}
                 />
               )}
