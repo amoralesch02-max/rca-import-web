@@ -3,14 +3,19 @@
 import AdminShell from "@/components/AdminShell";
 import ProductOptionsEditor from "@/components/ProductOptionsEditor";
 import {
+  getProductColors,
   validateProductOptions,
   type ColorOption,
   type StorageOption,
 } from "@/lib/product-options";
 import { supabase } from "@/lib/supabase";
-import { createSupabaseProduct } from "@/lib/supabase-products";
+import {
+  createSupabaseProduct,
+  getSupabaseAdminProductBySlug,
+} from "@/lib/supabase-products";
 import { uploadImageFile, uploadVideoFile } from "@/lib/supabase-storage";
 import {
+  Copy,
   AlertCircle,
   BadgeCheck,
   Boxes,
@@ -88,6 +93,10 @@ function parseLines(text: string) {
     .filter(Boolean);
 }
 
+function joinLines(items?: string[]) {
+  return (items ?? []).join("\n");
+}
+
 function isDirectVideo(url: string) {
   const cleanUrl = url.toLowerCase();
 
@@ -120,6 +129,8 @@ export default function NewProductPage() {
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  // Nombre del producto original cuando se llegó con "Duplicar"
+  const [duplicatedFrom, setDuplicatedFrom] = useState("");
 
   const [categoryOptions, setCategoryOptions] =
     useState<TaxonomyOption[]>(fallbackCategories);
@@ -168,6 +179,7 @@ export default function NewProductPage() {
 
       setReady(true);
       await loadTaxonomies();
+      await prefillFromDuplicate();
     }
 
     checkSessionAndLoad();
@@ -234,6 +246,76 @@ export default function NewProductPage() {
     });
 
     setTaxonomyLoading(false);
+  }
+
+  // Si se llega desde "Duplicar" (/admin/productos/nuevo?duplicar=slug),
+  // el formulario se llena con los datos del producto original,
+  // incluidas las fotos, los colores y las capacidades.
+  // Las fotos se REUTILIZAN (mismos enlaces): no hay que volver a subirlas.
+  async function prefillFromDuplicate() {
+    const sourceSlug = new URLSearchParams(window.location.search).get(
+      "duplicar"
+    );
+
+    if (!sourceSlug) {
+      return;
+    }
+
+    const source = await getSupabaseAdminProductBySlug(sourceSlug);
+
+    if (!source) {
+      setErrorMessage("No se encontró el producto que querías duplicar.");
+      return;
+    }
+
+    // Se asegura que la categoría, marca y país del original existan en las listas
+    setCategoryOptions((list) =>
+      list.some((item) => item.name === source.category)
+        ? list
+        : [...list, { name: source.category }]
+    );
+    setBrandOptions((list) =>
+      list.some((item) => item.name === source.brand)
+        ? list
+        : [...list, { name: source.brand }]
+    );
+    setCountryOptions((list) =>
+      list.some((item) => item.name === source.country)
+        ? list
+        : [...list, { name: source.country, flag: source.countryFlag }]
+    );
+
+    setForm({
+      name: source.name,
+      // El enlace se genera solo a partir del nombre (hay que cambiar el nombre)
+      slug: "",
+      category: source.category,
+      brand: source.brand,
+      price: String(source.price),
+      salePrice: source.salePrice ? String(source.salePrice) : "",
+      stock: String(source.stock),
+      reservedStock: "0",
+      country: source.country,
+      countryFlag: source.countryFlag || "🌎",
+      condition: source.condition || "Nuevo",
+      tag: source.tag || "Nuevo",
+      description: source.description || "",
+      featuresText: joinLines(source.features),
+      variantsText: joinLines(source.variants),
+      imageUrl: source.imageUrl ?? "",
+      galleryText: joinLines(source.gallery),
+      videoUrl: source.videoUrl ?? "",
+      wholesale: source.wholesale,
+      allowsReservation: source.allowsReservation,
+      invoice: source.invoice,
+      visible: source.visible !== false,
+      available: source.available !== false,
+      featured: Boolean(source.featured),
+    });
+
+    setColorOptions(getProductColors(source));
+    setStorageOptions(source.storageOptions ?? []);
+    setDuplicatedFrom(source.name);
   }
 
   const finalSlug = useMemo(() => {
@@ -537,6 +619,19 @@ export default function NewProductPage() {
               Selecciona categorías, marcas y países reales cargados desde
               Supabase.
             </p>
+
+            {duplicatedFrom && (
+              <div className="mt-6 flex gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-bold leading-6 text-[#0057A8]">
+                <Copy className="mt-0.5 shrink-0" />
+                <p>
+                  Estás duplicando «{duplicatedFrom}». Ya están cargadas las
+                  fotos, los colores y las capacidades. Cambia el{" "}
+                  <span className="underline">nombre</span> (el enlace del
+                  producto se genera de él) y ajusta la condición, el precio y
+                  lo que necesites antes de guardar.
+                </p>
+              </div>
+            )}
 
             {errorMessage && (
               <div className="mt-6 flex gap-3 rounded-2xl bg-red-50 p-4 text-sm font-bold text-[#E31B23]">

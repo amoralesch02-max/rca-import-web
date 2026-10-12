@@ -16,6 +16,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { uploadImageFile, uploadVideoFile } from "@/lib/supabase-storage";
 import {
+  Copy,
   AlertCircle,
   BadgeCheck,
   Boxes,
@@ -642,13 +643,23 @@ export default function EditProductPage() {
       title="Editar producto"
       description="Actualiza datos, imágenes, galería, video corto, stock y estado del producto."
     >
-      <Link
-        href="/admin/productos"
-        className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-black text-[#0057A8] shadow-sm transition hover:bg-blue-50"
-      >
-        <ChevronLeft size={18} />
-        Volver a productos
-      </Link>
+      <div className="flex flex-wrap gap-3">
+        <Link
+          href="/admin/productos"
+          className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-black text-[#0057A8] shadow-sm transition hover:bg-blue-50"
+        >
+          <ChevronLeft size={18} />
+          Volver a productos
+        </Link>
+
+        <Link
+          href={`/admin/productos/nuevo?duplicar=${product.slug}`}
+          className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-blue-50 hover:text-[#0057A8]"
+        >
+          <Copy size={17} />
+          Duplicar este producto
+        </Link>
+      </div>
 
       {taxonomyLoading && (
         <div className="mt-5 flex gap-3 rounded-[1.5rem] border border-blue-100 bg-blue-50 p-5 text-sm font-bold text-[#0057A8]">

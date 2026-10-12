@@ -10,6 +10,7 @@ import {
   updateSupabaseProductBySlug,
 } from "@/lib/supabase-products";
 import {
+  Copy,
   BadgeCheck,
   Boxes,
   CheckCircle2,
@@ -812,6 +813,14 @@ function ProductActions({
       >
         <Pencil size={16} />
         Editar
+      </Link>
+
+      <Link
+        href={`/admin/productos/nuevo?duplicar=${product.slug}`}
+        className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-700 transition hover:border-[#0057A8] hover:text-[#0057A8]"
+      >
+        <Copy size={16} />
+        Duplicar
       </Link>
 
       <button
