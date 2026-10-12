@@ -12,6 +12,7 @@ import SiteHeader from "@/components/SiteHeader";
 import { categoryItems } from "@/data/products";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getStartingPrice } from "@/lib/product-options";
+import { sortRecommended } from "@/lib/product-order";
 import { getSupabaseBanners, type PublicBanner } from "@/lib/supabase-banners";
 import {
   getSupabaseProducts,
@@ -93,13 +94,16 @@ export default function HomePage() {
   }, []);
 
   const featuredProducts = useMemo(() => {
-    const featured = products.filter((product) => product.featured);
+    // Se ordena primero (iPhone más nuevos arriba) y luego se toman los 8 primeros
+    const featured = sortRecommended(
+      products.filter((product) => product.featured)
+    );
 
     if (featured.length > 0) {
       return featured.slice(0, 8);
     }
 
-    return products.slice(0, 8);
+    return sortRecommended(products).slice(0, 8);
   }, [products]);
 
   const wholesaleProducts = useMemo(() => {

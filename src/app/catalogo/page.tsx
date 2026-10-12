@@ -4,6 +4,7 @@ import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import PublicProductCard from "@/components/PublicProductCard";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
+import { compareRecommended } from "@/lib/product-order";
 import {
   getSupabaseProducts,
   type PublicProduct,
@@ -233,16 +234,7 @@ export default function CatalogPage() {
     }
 
     if (sort === "Orden recomendado") {
-      result.sort((a, b) => {
-        if (a.featured !== b.featured) {
-          return Number(b.featured) - Number(a.featured);
-        }
-
-        if (a.salePrice && !b.salePrice) return -1;
-        if (!a.salePrice && b.salePrice) return 1;
-
-        return getAvailableStock(b) - getAvailableStock(a);
-      });
+      result.sort(compareRecommended);
     }
 
     return result;

@@ -15,6 +15,7 @@ import {
   getProductStorages,
   getStoragePricing,
 } from "@/lib/product-options";
+import { sortRecommended } from "@/lib/product-order";
 import { getSupabaseStoreSettings } from "@/lib/supabase-settings";
 import {
   DEFAULT_STORE_SETTINGS,
@@ -117,7 +118,7 @@ export default function ProductDetailPage() {
       setSettings(supabaseSettings);
 
       if (supabaseProduct) {
-        const related = allProducts
+        const related = sortRecommended(allProducts)
           .filter(
             (currentProduct) =>
               currentProduct.slug !== supabaseProduct.slug &&
