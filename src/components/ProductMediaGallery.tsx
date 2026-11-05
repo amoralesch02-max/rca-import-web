@@ -237,7 +237,7 @@ export default function ProductMediaGallery({
 
       {/* Miniaturas (las de color llevan su bolita) */}
       {slides.length > 1 && (
-        <div className="mt-3 flex gap-2.5 overflow-x-auto pb-1">
+        <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
           {slides.map((slide, index) => (
             <button
               key={slide.url}
@@ -248,7 +248,7 @@ export default function ProductMediaGallery({
                   ? `Ver ${colors[slide.colorIndex].name}`
                   : `Ver imagen ${index + 1}`
               }
-              className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border bg-white transition ${
+              className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border bg-white transition ${
                 selectedUrl === slide.url
                   ? "border-brand ring-2 ring-brand/25"
                   : "border-line hover:border-brand"
@@ -257,7 +257,7 @@ export default function ProductMediaGallery({
               <ProductImage
                 src={slide.url}
                 alt={`${product.name} imagen ${index + 1}`}
-                sizes="64px"
+                sizes="80px"
                 className="h-full w-full"
               />
 

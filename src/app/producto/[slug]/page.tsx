@@ -96,6 +96,7 @@ export default function ProductDetailPage() {
 
   const [product, setProduct] = useState<PublicProduct | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<PublicProduct[]>([]);
+  const [moreProducts, setMoreProducts] = useState<PublicProduct[]>([]);
   const [settings, setSettings] =
     useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
   const [loading, setLoading] = useState(true);
@@ -118,16 +119,31 @@ export default function ProductDetailPage() {
       setSettings(supabaseSettings);
 
       if (supabaseProduct) {
-        const related = sortRecommended(allProducts)
-          .filter(
-            (currentProduct) =>
-              currentProduct.slug !== supabaseProduct.slug &&
-              (currentProduct.category === supabaseProduct.category ||
-                currentProduct.brand === supabaseProduct.brand)
-          )
-          .slice(0, 3);
+        const others = sortRecommended(allProducts).filter(
+          (currentProduct) => currentProduct.slug !== supabaseProduct.slug
+        );
 
-        setRelatedProducts(related);
+        // 1) Los de la misma categoría (ej. más iPhones), hasta 10
+        const sameCategory = others.filter(
+          (currentProduct) => currentProduct.category === supabaseProduct.category
+        );
+
+        // 2) Otros productos para completar: primero los de la misma marca
+        const rest = others.filter(
+          (currentProduct) => currentProduct.category !== supabaseProduct.category
+        );
+
+        const restSorted = [
+          ...rest.filter(
+            (currentProduct) => currentProduct.brand === supabaseProduct.brand
+          ),
+          ...rest.filter(
+            (currentProduct) => currentProduct.brand !== supabaseProduct.brand
+          ),
+        ];
+
+        setRelatedProducts(sameCategory.slice(0, 10));
+        setMoreProducts(restSorted.slice(0, 5));
       }
 
       setLoading(false);
@@ -311,8 +327,15 @@ export default function ProductDetailPage() {
         </nav>
 
         {/* Galería + información */}
-        <div className="mt-4 grid gap-6 lg:grid-cols-[0.9fr_1fr] lg:gap-10">
+        <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)] lg:gap-10">
           <div className="min-w-0 lg:sticky lg:top-28 lg:self-start">
+            {/* Tamaño: hasta 560 px, pero se reduce si la pantalla es baja para que se vean también las miniaturas */}
+            <div
+              style={{
+                maxWidth:
+                  "min(100%, 560px, max(320px, calc(100vh - 300px)))",
+              }}
+            >
             <ProductMediaGallery
               key={product.slug}
               product={product}
@@ -320,6 +343,7 @@ export default function ProductDetailPage() {
               selectedColor={selectedColor}
               onColorChange={setSelectedColor}
             />
+            </div>
           </div>
 
           <div className="min-w-0">
@@ -486,11 +510,14 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Más productos */}
-        {relatedProducts.length > 0 && (
-          <section className="mt-10 border-t border-line pt-8">
+      </section>
+
+      {/* Más productos: sección más ancha, para que las tarjetas tengan el tamaño del catálogo */}
+      {relatedProducts.length > 0 && (
+        <section className="mx-auto max-w-7xl px-5 pb-10 md:px-6">
+          <div className="border-t border-line pt-8">
             <div className="flex items-end justify-between gap-4">
-              <h2 className="text-2xl font-bold tracking-tight">
+              <h2 className="text-xl font-bold tracking-tight md:text-2xl">
                 Más {product.category}
               </h2>
 
@@ -502,18 +529,51 @@ export default function ProductDetailPage() {
               </Link>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+            {/* 5 por fila en computadora (10 en total); en celular y tableta se muestran 8 para que no quede una tarjeta sola */}
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
               {relatedProducts.map((relatedProduct, index) => (
-                <PublicProductCard
+                <div
                   key={relatedProduct.slug}
-                  product={relatedProduct}
-                  index={index}
-                />
+                  className={`h-full ${index >= 8 ? "hidden lg:block" : ""}`}
+                >
+                  <PublicProductCard product={relatedProduct} index={index} />
+                </div>
               ))}
             </div>
-          </section>
-        )}
-      </section>
+          </div>
+        </section>
+      )}
+
+      {/* También te puede interesar: otros productos, para que siempre haya qué ver */}
+      {moreProducts.length > 0 && (
+        <section className="mx-auto max-w-7xl px-5 pb-10 md:px-6">
+          <div className="border-t border-line pt-8">
+            <div className="flex items-end justify-between gap-4">
+              <h2 className="text-xl font-bold tracking-tight md:text-2xl">
+                También te puede interesar
+              </h2>
+
+              <Link
+                href="/catalogo"
+                className="shrink-0 text-sm font-semibold text-brand transition hover:text-brand-hover"
+              >
+                Ver tienda →
+              </Link>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+              {moreProducts.map((moreProduct, index) => (
+                <div
+                  key={moreProduct.slug}
+                  className={`h-full ${index >= 4 ? "hidden lg:block" : ""}`}
+                >
+                  <PublicProductCard product={moreProduct} index={index} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <SiteFooter />
     </main>

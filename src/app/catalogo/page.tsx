@@ -21,7 +21,8 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 const sortOptions = [
   "Orden recomendado",
@@ -61,7 +62,7 @@ function toggleInList(list: string[], value: string) {
     : [...list, value];
 }
 
-export default function CatalogPage() {
+function CatalogContent() {
   const [products, setProducts] = useState<PublicProduct[]>([]);
   const [categories, setCategories] = useState<PublicCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,14 +82,57 @@ export default function CatalogPage() {
 
   useEffect(() => {
     loadCatalogData();
-
-    const searchParams = new URLSearchParams(window.location.search);
-    const type = searchParams.get("tipo");
-
-    if (type === "mayorista") {
-      setWholesaleOnly(true);
-    }
   }, []);
+
+  // Opciones que vienen en la dirección (las usa el menú "Catálogo" del header):
+  //   ?categoria=iPhones   ?condicion=seminuevo   ?q=iPhone 17   ?tipo=mayorista
+  // Se vuelven a aplicar cada vez que la dirección cambia.
+  const urlParams = useSearchParams();
+  const urlKey = urlParams.toString();
+
+  useEffect(() => {
+    if (loading) return;
+
+    const params = new URLSearchParams(urlKey);
+
+    const clean = (text: string) =>
+      text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+
+    // Categoría: se busca por nombre, sin importar mayúsculas ni tildes
+    const categoryParam = params.get("categoria");
+    const matchedCategory = categoryParam
+      ? categories.find((item) => clean(item.name) === clean(categoryParam))
+          ?.name ??
+        products.find((item) => clean(item.category) === clean(categoryParam))
+          ?.category
+      : undefined;
+
+    // Condición: "nuevo" coincide con "Nuevo" y "Nuevo sellado", pero no con "Seminuevo"
+    const conditionParam = params.get("condicion");
+    const matchedConditions = conditionParam
+      ? Array.from(
+          new Set(products.map((item) => item.condition).filter(Boolean))
+        ).filter((name) => clean(name).startsWith(clean(conditionParam)))
+      : [];
+
+    setSelectedCategories(matchedCategory ? [matchedCategory] : []);
+    setSelectedConditions(matchedConditions);
+    setSearch(params.get("q") ?? "");
+    setWholesaleOnly(params.get("tipo") === "mayorista");
+
+    // Al llegar desde un enlace se parte de filtros limpios
+    setSelectedBrands([]);
+    setMinPrice("");
+    setMaxPrice("");
+    setOnlyAvailable(false);
+    setOnlyDeals(false);
+    // Solo debe reaccionar a la dirección y a que los datos terminen de cargar
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlKey, loading]);
 
   async function loadCatalogData() {
     setLoading(true);
@@ -694,5 +738,14 @@ function ToggleRow({
       />
       {label}
     </label>
+  );
+}
+
+// La página se envuelve en Suspense porque lee la dirección (useSearchParams)
+export default function CatalogPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-bg" />}>
+      <CatalogContent />
+    </Suspense>
   );
 }

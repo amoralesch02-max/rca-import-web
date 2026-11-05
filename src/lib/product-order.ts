@@ -41,7 +41,7 @@ export function isIphone(product: Pick<OrderableProduct, "name" | "category">) {
   );
 }
 
-function getGeneration(name: string) {
+export function getGeneration(name: string) {
   const text = normalize(name);
   const numbered = text.match(/iphone\s*(\d{1,2})/);
 
