@@ -1,0 +1,236 @@
+/* ============================================================
+   TEMA NAVIDAD · "Noche de invierno"
+   ============================================================
+   Todo lo navideño vive en este archivo y solo se activa cuando la
+   tienda tiene el tema "navidad" (<html data-theme="navidad">).
+
+   PARA BORRARLO EN ENERO (lista completa en el archivo LIMPIEZA-NAVIDAD.md):
+     - Elimina este archivo y la línea  @import "./temas/navidad.css";  de globals.css
+     - Elimina la carpeta src/components/navidad
+   La tienda vuelve a quedar exactamente como siempre.
+   ============================================================ */
+
+html[data-theme="navidad"] {
+  /* Paleta */
+  --nv-navy-deep: #06122b; /* azul noche, fondos oscuros */
+  --nv-navy: #0a1b3d;
+  --nv-navy-light: #14367a;
+  --nv-gold: #e6b450; /* dorado de detalles */
+  --nv-gold-soft: #f5d98b;
+  --nv-red: #c8102e; /* rojo festivo */
+  --nv-pine: #1f6f4a; /* verde pino, solo en detalles pequeños */
+  --nv-snow: #f4f8ff;
+}
+
+/* ---------- Mostrar / ocultar según el tema ---------- */
+/* .nv-off: se oculta en Navidad (el texto normal)  ·  .nv-only*: solo aparece en Navidad */
+html[data-theme="navidad"] .nv-off {
+  display: none;
+}
+
+html[data-theme="navidad"] .nv-only {
+  display: block;
+}
+
+html[data-theme="navidad"] .nv-only-inline {
+  display: inline;
+}
+
+html[data-theme="navidad"] .nv-only-flex {
+  display: flex;
+}
+
+/* ---------- Zonas oscuras ---------- */
+/* Barra superior, footer y tarjetas oscuras: azul marino profundo */
+html[data-theme="navidad"] .bg-slate-950 {
+  background-color: var(--nv-navy-deep);
+}
+
+html[data-theme="navidad"] .border-slate-800 {
+  border-color: #16305f;
+}
+
+/* ---------- Encabezado del inicio ---------- */
+/* Cielo de noche con un resplandor cálido */
+html[data-theme="navidad"] .hero-bg {
+  background:
+    radial-gradient(
+      ellipse 50% 70% at 82% 12%,
+      rgba(255, 255, 255, 0.16) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 45% 55% at 0% 100%,
+      rgba(230, 180, 80, 0.2) 0%,
+      transparent 65%
+    ),
+    linear-gradient(165deg, var(--nv-navy-light) 0%, var(--nv-navy) 55%, var(--nv-navy-deep) 100%);
+}
+
+/* En lugar de la cuadrícula: cielo estrellado (estático, no pesa) */
+html[data-theme="navidad"] .hero-grid::before {
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.6) 0 1px, transparent 1.7px),
+    radial-gradient(circle, rgba(245, 217, 139, 0.55) 0 1px, transparent 1.7px);
+  background-size: 46px 46px, 73px 73px;
+  background-position: 0 0, 23px 31px;
+}
+
+/* Filete dorado bajo el encabezado */
+html[data-theme="navidad"] .hero-grid.border-slate-800 {
+  border-color: rgba(230, 180, 80, 0.6);
+}
+
+/* Nieve acumulada en el borde inferior del encabezado */
+html[data-theme="navidad"] .hero-grid::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 18px;
+  z-index: 1;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='22' viewBox='0 0 240 22' preserveAspectRatio='none'%3E %3Cpath d='M0 22 L0 12 Q20 0 40 10 Q60 20 80 9 Q100 -2 120 11 Q140 21 160 9 Q180 -1 200 11 Q220 20 240 12 L240 22 Z' fill='%23ffffff'/%3E%3C/svg%3E") repeat-x bottom left / 240px 100%;
+}
+
+@media (min-width: 768px) {
+  html[data-theme="navidad"] .hero-grid::after {
+    height: 22px;
+  }
+}
+
+/* Banner de contacto: azul noche con un toque de rojo festivo */
+html[data-theme="navidad"] .cta-gradient {
+  background: linear-gradient(
+    100deg,
+    var(--nv-navy-light) 0%,
+    var(--nv-navy) 62%,
+    #7f1428 100%
+  );
+}
+
+/* ---------- Luces navideñas bajo el menú ---------- */
+html[data-theme="navidad"] header.sticky::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 26px;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='26' viewBox='0 0 160 26'%3E %3Cpath d='M0 1 Q20 13 40 1 Q60 13 80 1 Q100 13 120 1 Q140 13 160 1' fill='none' stroke='%230a1b3d' stroke-width='1.3'/%3E %3Cline x1='20' y1='7' x2='20' y2='10' stroke='%230a1b3d' stroke-width='1.2'/%3E%3Ccircle cx='20' cy='15' r='7' fill='%23e63946' opacity='.25'/%3E%3Cellipse cx='20' cy='14.5' rx='3.2' ry='4.4' fill='%23e63946'/%3E%3Cellipse cx='19' cy='13' rx='.9' ry='1.4' fill='%23fff' opacity='.7'/%3E%3Cline x1='60' y1='7' x2='60' y2='10' stroke='%230a1b3d' stroke-width='1.2'/%3E%3Ccircle cx='60' cy='15' r='7' fill='%23f5c542' opacity='.25'/%3E%3Cellipse cx='60' cy='14.5' rx='3.2' ry='4.4' fill='%23f5c542'/%3E%3Cellipse cx='59' cy='13' rx='.9' ry='1.4' fill='%23fff' opacity='.7'/%3E%3Cline x1='100' y1='7' x2='100' y2='10' stroke='%230a1b3d' stroke-width='1.2'/%3E%3Ccircle cx='100' cy='15' r='7' fill='%232fa66a' opacity='.25'/%3E%3Cellipse cx='100' cy='14.5' rx='3.2' ry='4.4' fill='%232fa66a'/%3E%3Cellipse cx='99' cy='13' rx='.9' ry='1.4' fill='%23fff' opacity='.7'/%3E%3Cline x1='140' y1='7' x2='140' y2='10' stroke='%230a1b3d' stroke-width='1.2'/%3E%3Ccircle cx='140' cy='15' r='7' fill='%234da3ff' opacity='.25'/%3E%3Cellipse cx='140' cy='14.5' rx='3.2' ry='4.4' fill='%234da3ff'/%3E%3Cellipse cx='139' cy='13' rx='.9' ry='1.4' fill='%23fff' opacity='.7'/%3E%3C/svg%3E") repeat-x top left / 160px 26px;
+  animation: nv-twinkle 2.8s ease-in-out infinite;
+}
+
+@keyframes nv-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* ---------- Tarjetas de producto ---------- */
+/* Borde dorado suave y una cinta de bastón de caramelo arriba */
+html[data-theme="navidad"] .nv-card {
+  position: relative;
+  border-color: rgba(230, 180, 80, 0.4);
+}
+
+html[data-theme="navidad"] .nv-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  z-index: 2;
+  background: repeating-linear-gradient(
+    135deg,
+    #c8102e 0 8px,
+    #ffffff 8px 16px
+  );
+}
+
+html[data-theme="navidad"] .nv-card:hover {
+  border-color: var(--nv-gold);
+  box-shadow: 0 14px 30px -12px rgba(230, 180, 80, 0.5);
+}
+
+/* ---------- Títulos de sección y categorías ---------- */
+html[data-theme="navidad"] .nv-title::before {
+  content: "✦";
+  margin-right: 0.45em;
+  font-size: 0.8em;
+  color: var(--nv-gold);
+}
+
+html[data-theme="navidad"] .nv-tile {
+  position: relative;
+}
+
+html[data-theme="navidad"] .nv-tile::after {
+  content: "✦";
+  position: absolute;
+  top: 7px;
+  right: 10px;
+  font-size: 11px;
+  color: var(--nv-gold);
+}
+
+html[data-theme="navidad"] .nv-tile:hover {
+  border-color: var(--nv-gold);
+}
+
+/* ---------- Footer: pinos nevados ---------- */
+html[data-theme="navidad"] footer.bg-slate-950 {
+  position: relative;
+}
+
+html[data-theme="navidad"] footer.bg-slate-950::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -21px;
+  height: 22px;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='22' viewBox='0 0 120 22'%3E %3Cpath d='M4 22 L18 10.2 L32 22 Z' fill='%2306122b'/%3E%3Cpath d='M7.9 14.4 L18 3 L28.1 14.4 Z' fill='%2306122b'/%3E%3Cpath d='M18 3 L15.4 8 L20.6 8 Z' fill='%23ffffff' opacity='.9'/%3E%3Cpath d='M52 22 L62 12.7 L72 22 Z' fill='%2306122b'/%3E%3Cpath d='M54.8 16.0 L62 7 L69.2 16.0 Z' fill='%2306122b'/%3E%3Cpath d='M62 7 L59.4 12 L64.6 12 Z' fill='%23ffffff' opacity='.9'/%3E%3Cpath d='M88 22 L100 10.8 L112 22 Z' fill='%2306122b'/%3E%3Cpath d='M91.4 14.8 L100 4 L108.6 14.8 Z' fill='%2306122b'/%3E%3Cpath d='M100 4 L97.4 9 L102.6 9 Z' fill='%23ffffff' opacity='.9'/%3E%3C/svg%3E") repeat-x bottom left / 120px 22px;
+}
+
+/* ---------- Gorro de Santa en el botón de WhatsApp ---------- */
+html[data-theme="navidad"] a[aria-label="Escribir por WhatsApp"]::after {
+  content: "";
+  position: absolute;
+  top: -15px;
+  left: -9px;
+  width: 36px;
+  height: 34px;
+  pointer-events: none;
+  transform: rotate(-16deg);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='34' viewBox='0 0 36 34'%3E %3Cpath d='M5 27 C6 13 16 3 29 8 C25 11 23 18 25 27 Z' fill='%23d62839'/%3E %3Crect x='2' y='24' width='26' height='7' rx='3.5' fill='%23ffffff'/%3E %3Ccircle cx='29.5' cy='8' r='4.6' fill='%23ffffff'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+/* ---------- Nieve cayendo ---------- */
+html[data-theme="navidad"] .nv-flake {
+  position: absolute;
+  top: -12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0 40%, #bcd6f6 100%);
+  box-shadow: 0 0 3px rgba(90, 140, 210, 0.5);
+  animation: nv-fall linear infinite;
+  will-change: transform;
+}
+
+@keyframes nv-fall {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(var(--nv-sway, 20px), 55vh, 0);
+  }
+  100% {
+    transform: translate3d(calc(var(--nv-sway, 20px) * -0.4), 112vh, 0);
+  }
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import CartDrawer from "@/components/CartDrawer";
+import ChristmasCountdown from "@/components/navidad/ChristmasCountdown";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { buildCatalogMenu, type CatalogMenuData } from "@/lib/catalog-menu";
 import Image from "next/image";
@@ -237,8 +238,13 @@ export default function SiteHeader() {
       <header className="sticky top-0 z-50 border-b border-line bg-white/95 text-slate-950 shadow-sm shadow-slate-200/60">
         {/* Barra superior fina */}
         <div className="bg-slate-950 text-center text-[11px] font-semibold tracking-wide text-blue-200">
-          <p className="mx-auto max-w-7xl px-4 py-1.5">
+          <p className="nv-off mx-auto max-w-7xl px-4 py-1.5">
             Envíos a todo el Perú · Atención directa por WhatsApp
+          </p>
+
+          {/* Solo en Navidad: cuenta regresiva */}
+          <p className="nv-only mx-auto max-w-7xl px-4 py-1.5">
+            <ChristmasCountdown />
           </p>
         </div>
 

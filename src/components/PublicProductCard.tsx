@@ -62,7 +62,7 @@ export default function PublicProductCard({
         ease: [0.22, 1, 0.36, 1],
       }}
     >
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white p-2.5 text-slate-950 shadow-sm transition hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-slate-200 sm:p-3">
+    <article className="nv-card group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white p-2.5 text-slate-950 shadow-sm transition hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-slate-200 sm:p-3">
       <Link
         href={`/producto/${product.slug}`}
         className="relative block overflow-hidden rounded-xl"

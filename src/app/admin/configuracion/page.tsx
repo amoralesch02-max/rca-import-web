@@ -2,6 +2,7 @@
 
 import AdminShell from "@/components/AdminShell";
 import ConfirmModal from "@/components/ConfirmModal";
+import SeasonThemeCard from "@/components/SeasonThemeCard";
 import { DEFAULT_STORE_SETTINGS, type StoreSettings } from "@/lib/store-settings";
 import { supabase } from "@/lib/supabase";
 import {
@@ -222,6 +223,10 @@ export default function AdminSettingsPage() {
           )}
         </section>
       )}
+
+      <div className="mt-6">
+        <SeasonThemeCard />
+      </div>
 
       <form
         onSubmit={handleSubmit}

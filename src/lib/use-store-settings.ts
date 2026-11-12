@@ -11,6 +11,14 @@ import { useEffect, useState } from "react";
 // la configuración de la tienda se pide a Supabase una única vez.
 let settingsPromise: Promise<StoreSettings> | null = null;
 
+export function loadSharedStoreSettings(): Promise<StoreSettings> {
+  if (!settingsPromise) {
+    settingsPromise = getSupabaseStoreSettings();
+  }
+
+  return settingsPromise;
+}
+
 export function useStoreSettings(): StoreSettings {
   const [settings, setSettings] =
     useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
@@ -18,11 +26,7 @@ export function useStoreSettings(): StoreSettings {
   useEffect(() => {
     let active = true;
 
-    if (!settingsPromise) {
-      settingsPromise = getSupabaseStoreSettings();
-    }
-
-    settingsPromise.then((loaded) => {
+    loadSharedStoreSettings().then((loaded) => {
       if (active) {
         setSettings(loaded);
       }

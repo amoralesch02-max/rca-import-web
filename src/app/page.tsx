@@ -1,5 +1,6 @@
 "use client";
 
+import ChristmasBanner from "@/components/navidad/ChristmasBanner";
 import HeroCarousel, {
   type HeroCarouselItem,
 } from "@/components/HeroCarousel";
@@ -51,6 +52,15 @@ const HERO = {
   highlight: "iPhone",
   after: "al mejor precio",
   tagline: "Desliza y descubre los equipos del momento",
+};
+
+// Textos que se ven SOLO cuando el tema Navidad está activo
+const HERO_NAVIDAD = {
+  badge: "🎄 Productos estrella",
+  before: "Estas fiestas, renueva tu",
+  highlight: "iPhone",
+  after: "",
+  tagline: "Regala tecnología esta Navidad",
 };
 
 /**
@@ -197,18 +207,32 @@ export default function HomePage() {
         <div className={`${container} relative z-10 py-6 md:py-10`}>
           <Reveal y={16} className="mx-auto max-w-2xl text-center">
             <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3.5 py-1 text-[11px] font-semibold tracking-wide text-blue-100 backdrop-blur">
-              {HERO.badge}
+              <span className="nv-off">{HERO.badge}</span>
+              <span className="nv-only-inline">{HERO_NAVIDAD.badge}</span>
             </span>
 
             <h1 className="mt-3 text-2xl font-bold leading-tight tracking-tight md:text-4xl">
-              {HERO.before}{" "}
-              <span className="underline decoration-alert decoration-[3px] underline-offset-[6px]">
-                {HERO.highlight}
-              </span>{" "}
-              {HERO.after}
+              <span className="nv-off">
+                {HERO.before}{" "}
+                <span className="underline decoration-alert decoration-[3px] underline-offset-[6px]">
+                  {HERO.highlight}
+                </span>{" "}
+                {HERO.after}
+              </span>
+              <span className="nv-only-inline">
+                {HERO_NAVIDAD.before}{" "}
+                <span className="underline decoration-amber-300 decoration-[3px] underline-offset-[6px]">
+                  {HERO_NAVIDAD.highlight}
+                </span>
+              </span>
             </h1>
 
-            <p className="mt-2 text-sm text-blue-100/90">{HERO.tagline}</p>
+            <p className="nv-off mt-2 text-sm text-blue-100/90">
+              {HERO.tagline}
+            </p>
+            <p className="nv-only mt-2 text-sm text-blue-100/90">
+              {HERO_NAVIDAD.tagline}
+            </p>
           </Reveal>
 
           {/* Productos estrella: son los protagonistas */}
@@ -230,6 +254,9 @@ export default function HomePage() {
           </Reveal>
         </div>
       </section>
+
+      {/* Solo en Navidad: cuenta regresiva / saludo */}
+      <ChristmasBanner />
 
       {/* ================= BENEFICIOS ================= */}
       <section className="border-b border-line bg-white">
@@ -282,7 +309,7 @@ export default function HomePage() {
       {/* ================= CATEGORÍAS ================= */}
       <section className={`${container} py-10 md:py-14`}>
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-xl font-bold tracking-tight md:text-2xl">
+          <h2 className="nv-title text-xl font-bold tracking-tight md:text-2xl">
             Categorías
           </h2>
 
@@ -307,7 +334,7 @@ export default function HomePage() {
               >
               <Link
                 href={`/categoria/${category.slug}`}
-                className="group flex h-full flex-col items-center gap-2.5 rounded-2xl border border-line bg-white px-2 py-4 text-center transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg hover:shadow-slate-200 sm:gap-3 sm:py-5"
+                className="nv-tile group flex h-full flex-col items-center gap-2.5 rounded-2xl border border-line bg-white px-2 py-4 text-center transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg hover:shadow-slate-200 sm:gap-3 sm:py-5"
               >
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-brand transition duration-300 group-hover:-rotate-6 group-hover:scale-110 group-hover:bg-brand group-hover:text-white sm:h-12 sm:w-12">
                   <Icon size={22} strokeWidth={1.8} />
@@ -327,7 +354,7 @@ export default function HomePage() {
       <section className="border-t border-line pb-10 pt-10 md:pb-14 md:pt-14">
         <div className={container}>
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-xl font-bold tracking-tight md:text-2xl">
+            <h2 className="nv-title text-xl font-bold tracking-tight md:text-2xl">
               Destacados
             </h2>
 
@@ -442,7 +469,7 @@ export default function HomePage() {
       {/* ================= PREGUNTAS FRECUENTES ================= */}
       <section className="border-t border-line py-10 md:py-14">
         <div className="mx-auto max-w-3xl px-5 md:px-6">
-          <h2 className="text-center text-xl font-bold tracking-tight md:text-2xl">
+          <h2 className="nv-title text-center text-xl font-bold tracking-tight md:text-2xl">
             Preguntas frecuentes
           </h2>
 

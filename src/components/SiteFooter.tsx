@@ -149,6 +149,11 @@ export default function SiteFooter() {
               por mayor con envíos a todo el Perú.
             </p>
 
+            {/* Solo en Navidad */}
+            <p className="nv-only mt-3 max-w-xs text-sm font-semibold text-amber-200">
+              🎄 Felices fiestas de parte de toda la familia RCA IMPORT.
+            </p>
+
             <div className="mt-5 flex gap-2">
               {socialLinks.map((social) => (
                 <a

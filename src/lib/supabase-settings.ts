@@ -1,5 +1,7 @@
 import {
   DEFAULT_STORE_SETTINGS,
+  parseSeasonTheme,
+  type SeasonTheme,
   type StoreSettings,
 } from "@/lib/store-settings";
 import { supabase } from "@/lib/supabase";
@@ -20,6 +22,7 @@ type SupabaseStoreSettings = {
   shipping_message: string | null;
   wholesale_message: string | null;
   payment_message: string | null;
+  season_theme?: string | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -59,6 +62,7 @@ function mapSupabaseSettings(
       settings.wholesale_message ?? DEFAULT_STORE_SETTINGS.wholesaleMessage,
     paymentMessage:
       settings.payment_message ?? DEFAULT_STORE_SETTINGS.paymentMessage,
+    seasonTheme: parseSeasonTheme(settings.season_theme),
   };
 }
 
@@ -130,6 +134,44 @@ export async function updateSupabaseStoreSettings(settings: StoreSettings) {
 
   if (error) {
     console.error("Error creando configuración:", error.message);
+
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    success: true,
+    error: null,
+  };
+}
+
+/**
+ * Cambia SOLO el tema de temporada. No toca el resto de la configuración,
+ * así que no depende de que los demás campos del formulario estén completos.
+ */
+export async function updateSupabaseSeasonTheme(theme: SeasonTheme) {
+  const currentSettings = await getSupabaseStoreSettings();
+
+  if (!currentSettings.id) {
+    return {
+      success: false,
+      error:
+        "Todavía no hay una configuración guardada. Guarda primero la configuración general y vuelve a intentarlo.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("store_settings")
+    .update({
+      season_theme: theme,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", currentSettings.id);
+
+  if (error) {
+    console.error("Error actualizando el tema:", error.message);
 
     return {
       success: false,

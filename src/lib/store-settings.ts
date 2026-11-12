@@ -1,3 +1,16 @@
+/** Tema visual de temporada de la tienda */
+export type SeasonTheme = "normal" | "navidad" | "anio-nuevo";
+
+export const SEASON_THEME_LABELS: Record<SeasonTheme, string> = {
+  normal: "Normal",
+  navidad: "Navidad",
+  "anio-nuevo": "Año Nuevo",
+};
+
+export function parseSeasonTheme(value: unknown): SeasonTheme {
+  return value === "navidad" || value === "anio-nuevo" ? value : "normal";
+}
+
 export type StoreSettings = {
   storeName: string;
   slogan: string;
@@ -13,6 +26,8 @@ export type StoreSettings = {
   shippingMessage: string;
   wholesaleMessage: string;
   paymentMessage: string;
+  /** Tema de temporada. Se cambia desde el panel admin (Configuración). */
+  seasonTheme?: SeasonTheme;
 };
 
 export const SETTINGS_KEY = "rca_import_store_settings";
@@ -36,6 +51,7 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
     "Consulta precios especiales para compras al por mayor en accesorios, cables, cubos y productos importados.",
   paymentMessage:
     "Por ahora trabajamos con Yape manual y comprobante. Próximamente se activará pasarela de pago.",
+  seasonTheme: "normal",
 };
 
 export function getStoreSettings(): StoreSettings {
