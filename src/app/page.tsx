@@ -1,6 +1,7 @@
 "use client";
 
 import ChristmasBanner from "@/components/navidad/ChristmasBanner";
+import HeroDecorLoader from "@/components/navidad/HeroDecorLoader";
 import HeroCarousel, {
   type HeroCarouselItem,
 } from "@/components/HeroCarousel";
@@ -204,7 +205,10 @@ export default function HomePage() {
 
       {/* ================= HERO ================= */}
       <section className="hero-bg hero-grid border-b border-slate-800 text-white">
-        <div className={`${container} relative z-10 py-6 md:py-10`}>
+        {/* Solo en Navidad: ramas, luces, nieve, regalo y reno */}
+        <HeroDecorLoader />
+
+        <div className={`${container} nv-hero-pad relative z-10 py-6 md:py-10`}>
           <Reveal y={16} className="mx-auto max-w-2xl text-center">
             <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3.5 py-1 text-[11px] font-semibold tracking-wide text-blue-100 backdrop-blur">
               <span className="nv-off">{HERO.badge}</span>
@@ -221,8 +225,19 @@ export default function HomePage() {
               </span>
               <span className="nv-only-inline">
                 {HERO_NAVIDAD.before}{" "}
-                <span className="underline decoration-amber-300 decoration-[3px] underline-offset-[6px]">
+                <span className="relative inline-block">
                   {HERO_NAVIDAD.highlight}
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 200 14"
+                    preserveAspectRatio="none"
+                    className="absolute -bottom-2 left-0 h-3 w-full"
+                    fill="none"
+                    strokeLinecap="round"
+                  >
+                    <path d="M3 10 C50 8 120 6 197 3" stroke="#fbbf24" strokeWidth="4" />
+                    <path d="M20 12 C70 10 130 9 180 7" stroke="#fde68a" strokeWidth="1.5" opacity="0.7" />
+                  </svg>
                 </span>
               </span>
             </h1>

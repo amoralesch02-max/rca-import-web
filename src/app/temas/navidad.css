@@ -54,6 +54,9 @@ html[data-theme="navidad"] .border-slate-800 {
 /* Cielo de noche con un resplandor cálido */
 html[data-theme="navidad"] .hero-bg {
   background:
+    radial-gradient(circle 90px at 22% 38%, rgba(140, 190, 255, 0.14), transparent 70%),
+    radial-gradient(circle 120px at 78% 30%, rgba(255, 220, 150, 0.1), transparent 70%),
+    radial-gradient(circle 70px at 64% 72%, rgba(140, 190, 255, 0.12), transparent 70%),
     radial-gradient(
       ellipse 50% 70% at 82% 12%,
       rgba(255, 255, 255, 0.16) 0%,
@@ -67,13 +70,42 @@ html[data-theme="navidad"] .hero-bg {
     linear-gradient(165deg, var(--nv-navy-light) 0%, var(--nv-navy) 55%, var(--nv-navy-deep) 100%);
 }
 
-/* En lugar de la cuadrícula: cielo estrellado (estático, no pesa) */
+/* En lugar de la cuadrícula: cielo estrellado (imagen en /public/navidad, solo se descarga en Navidad) */
 html[data-theme="navidad"] .hero-grid::before {
-  background-image:
-    radial-gradient(circle, rgba(255, 255, 255, 0.6) 0 1px, transparent 1.7px),
-    radial-gradient(circle, rgba(245, 217, 139, 0.55) 0 1px, transparent 1.7px);
-  background-size: 46px 46px, 73px 73px;
-  background-position: 0 0, 23px 31px;
+  background-image: url("/navidad/estrellas.png");
+  background-size: 640px 640px;
+  background-position: 0 0;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* Grano fino sobre todo el encabezado: quita lo "liso" de los degradados */
+html[data-theme="navidad"] .hero-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: url("/navidad/grano.png") repeat 0 0 / 128px 128px;
+}
+
+/* La decoración aparece con un suave fundido (solo una vez, no pesa) */
+@keyframes nv-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+html[data-theme="navidad"] .nv-fade {
+  animation: nv-fade-in 0.6s ease-out both;
+}
+
+/* Viñeta: oscurece suavemente las esquinas para dar profundidad */
+html[data-theme="navidad"] .hero-bg {
+  box-shadow: inset 0 0 140px rgba(2, 8, 24, 0.55);
 }
 
 /* Filete dorado bajo el encabezado */
@@ -81,23 +113,19 @@ html[data-theme="navidad"] .hero-grid.border-slate-800 {
   border-color: rgba(230, 180, 80, 0.6);
 }
 
-/* Nieve acumulada en el borde inferior del encabezado */
-html[data-theme="navidad"] .hero-grid::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 18px;
-  z-index: 1;
-  pointer-events: none;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='22' viewBox='0 0 240 22' preserveAspectRatio='none'%3E %3Cpath d='M0 22 L0 12 Q20 0 40 10 Q60 20 80 9 Q100 -2 120 11 Q140 21 160 9 Q180 -1 200 11 Q220 20 240 12 L240 22 Z' fill='%23ffffff'/%3E%3C/svg%3E") repeat-x bottom left / 240px 100%;
+/* Espacio inferior para que las colinas de nieve (HeroDecor) no tapen los puntos del carrusel */
+html[data-theme="navidad"] .nv-hero-pad {
+  padding-bottom: 3.5rem;
 }
 
 @media (min-width: 768px) {
-  html[data-theme="navidad"] .hero-grid::after {
-    height: 22px;
+  html[data-theme="navidad"] .nv-hero-pad {
+    padding-bottom: 5.75rem;
   }
+}
+
+html[data-theme="navidad"] .hero-grid.border-slate-800 {
+  border-bottom-color: #ffffff;
 }
 
 /* Banner de contacto: azul noche con un toque de rojo festivo */
@@ -118,8 +146,9 @@ html[data-theme="navidad"] header.sticky::after {
   right: 0;
   top: 100%;
   height: 26px;
+  z-index: 1;
   pointer-events: none;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='26' viewBox='0 0 160 26'%3E %3Cpath d='M0 1 Q20 13 40 1 Q60 13 80 1 Q100 13 120 1 Q140 13 160 1' fill='none' stroke='%230a1b3d' stroke-width='1.3'/%3E %3Cline x1='20' y1='7' x2='20' y2='10' stroke='%230a1b3d' stroke-width='1.2'/%3E%3Ccircle cx='20' cy='15' r='7' fill='%23e63946' opacity='.25'/%3E%3Cellipse cx='20' cy='14.5' rx='3.2' ry='4.4' fill='%23e63946'/%3E%3Cellipse cx='19' cy='13' rx='.9' ry='1.4' fill='%23fff' opacity='.7'/%3E%3Cline x1='60' y1='7' x2='60' y2='10' stroke='%230a1b3d' stroke-width='1.2'/%3E%3Ccircle cx='60' cy='15' r='7' fill='%23f5c542' opacity='.25'/%3E%3Cellipse cx='60' cy='14.5' rx='3.2' ry='4.4' fill='%23f5c542'/%3E%3Cellipse cx='59' cy='13' rx='.9' ry='1.4' fill='%23fff' opacity='.7'/%3E%3Cline x1='100' y1='7' x2='100' y2='10' stroke='%230a1b3d' stroke-width='1.2'/%3E%3Ccircle cx='100' cy='15' r='7' fill='%232fa66a' opacity='.25'/%3E%3Cellipse cx='100' cy='14.5' rx='3.2' ry='4.4' fill='%232fa66a'/%3E%3Cellipse cx='99' cy='13' rx='.9' ry='1.4' fill='%23fff' opacity='.7'/%3E%3Cline x1='140' y1='7' x2='140' y2='10' stroke='%230a1b3d' stroke-width='1.2'/%3E%3Ccircle cx='140' cy='15' r='7' fill='%234da3ff' opacity='.25'/%3E%3Cellipse cx='140' cy='14.5' rx='3.2' ry='4.4' fill='%234da3ff'/%3E%3Cellipse cx='139' cy='13' rx='.9' ry='1.4' fill='%23fff' opacity='.7'/%3E%3C/svg%3E") repeat-x top left / 160px 26px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='26' viewBox='0 0 160 26'%3E%3Cpath d='M0 1 Q20 13 40 1 Q60 13 80 1 Q100 13 120 1 Q140 13 160 1' fill='none' stroke='%231b2a44' stroke-width='1.2'/%3E%3Cline x1='20' y1='7' x2='20' y2='10' stroke='%231b2a44' stroke-width='1.2'/%3E%3Ccircle cx='20' cy='15' r='8' fill='%23ffd36b' opacity='.3'/%3E%3Cellipse cx='20' cy='14.5' rx='2.8' ry='4.2' fill='%23ffd36b'/%3E%3Cellipse cx='19' cy='13' rx='.8' ry='1.3' fill='%23fff' opacity='.8'/%3E%3Cline x1='60' y1='7' x2='60' y2='10' stroke='%231b2a44' stroke-width='1.2'/%3E%3Ccircle cx='60' cy='15' r='8' fill='%23fff1c2' opacity='.3'/%3E%3Cellipse cx='60' cy='14.5' rx='2.8' ry='4.2' fill='%23fff1c2'/%3E%3Cellipse cx='59' cy='13' rx='.8' ry='1.3' fill='%23fff' opacity='.8'/%3E%3Cline x1='100' y1='7' x2='100' y2='10' stroke='%231b2a44' stroke-width='1.2'/%3E%3Ccircle cx='100' cy='15' r='8' fill='%23ffd36b' opacity='.3'/%3E%3Cellipse cx='100' cy='14.5' rx='2.8' ry='4.2' fill='%23ffd36b'/%3E%3Cellipse cx='99' cy='13' rx='.8' ry='1.3' fill='%23fff' opacity='.8'/%3E%3Cline x1='140' y1='7' x2='140' y2='10' stroke='%231b2a44' stroke-width='1.2'/%3E%3Ccircle cx='140' cy='15' r='8' fill='%23ff7a6b' opacity='.3'/%3E%3Cellipse cx='140' cy='14.5' rx='2.8' ry='4.2' fill='%23ff7a6b'/%3E%3Cellipse cx='139' cy='13' rx='.8' ry='1.3' fill='%23fff' opacity='.8'/%3E%3C/svg%3E") repeat-x top left / 160px 26px;
   animation: nv-twinkle 2.8s ease-in-out infinite;
 }
 
@@ -200,16 +229,18 @@ html[data-theme="navidad"] footer.bg-slate-950::before {
 }
 
 /* ---------- Gorro de Santa en el botón de WhatsApp ---------- */
+/* El dibujo mide 84 x 90 y el círculo del botón queda en su centro (42, 58):
+   la banda de piel sigue la curva del botón, como si lo llevara puesto */
 html[data-theme="navidad"] a[aria-label="Escribir por WhatsApp"]::after {
   content: "";
   position: absolute;
-  top: -15px;
-  left: -9px;
-  width: 36px;
-  height: 34px;
+  top: -30px;
+  left: -14px;
+  width: 84px;
+  height: 90px;
   pointer-events: none;
-  transform: rotate(-16deg);
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='34' viewBox='0 0 36 34'%3E %3Cpath d='M5 27 C6 13 16 3 29 8 C25 11 23 18 25 27 Z' fill='%23d62839'/%3E %3Crect x='2' y='24' width='26' height='7' rx='3.5' fill='%23ffffff'/%3E %3Ccircle cx='29.5' cy='8' r='4.6' fill='%23ffffff'/%3E%3C/svg%3E") no-repeat center / contain;
+  filter: drop-shadow(0 2px 2px rgba(0, 20, 40, 0.3));
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='90' viewBox='0 0 84 90'%3E %3Cdefs%3E %3ClinearGradient id='r' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f23a4f'/%3E%3Cstop offset='.55' stop-color='%23d4192d'/%3E%3Cstop offset='1' stop-color='%239c1020'/%3E%3C/linearGradient%3E %3ClinearGradient id='w' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='1' stop-color='%23dbe4f1'/%3E%3C/linearGradient%3E %3CradialGradient id='p' cx='.35' cy='.3' r='.8'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='1' stop-color='%23cdd8ea'/%3E%3C/radialGradient%3E %3C/defs%3E %3Cpath d='M11.9 44.6 C12 30 25 11 42 9 C55 8 64 13 68 24 C63 21 58 24 56 29 C57 32 61.4 31.3 61.4 31.3 A33 33 0 0 0 11.9 44.6 Z' fill='url(%23r)'/%3E %3Cpath d='M14 40 C15 27 24 15 36 11.5' fill='none' stroke='%23ff8a98' stroke-opacity='.7' stroke-width='1.8' stroke-linecap='round'/%3E %3Cpath d='M15.1 47.1 A29 29 0 0 1 60.6 35.8' fill='none' stroke='%238ea3c4' stroke-opacity='.35' stroke-width='11.5' stroke-linecap='round'/%3E %3Cpath d='M15.1 47.1 A29 29 0 0 1 60.6 35.8' fill='none' stroke='url(%23w)' stroke-width='9.5' stroke-linecap='round'/%3E %3Cpath d='M18.3 45.4 A26.8 26.8 0 0 1 56.2 35.3' fill='none' stroke='%23fff' stroke-opacity='.9' stroke-width='2.2' stroke-linecap='round'/%3E %3Ccircle cx='68' cy='24' r='6.2' fill='url(%23p)'/%3E %3Cg fill='%239fb0cc' opacity='.4'%3E%3Ccircle cx='19' cy='44' r='.9'/%3E%3Ccircle cx='26' cy='35.5' r='.9'/%3E%3Ccircle cx='42' cy='30.5' r='.9'/%3E%3Ccircle cx='54' cy='33' r='.9'/%3E%3Ccircle cx='66' cy='22.5' r='.8'/%3E%3Ccircle cx='69.5' cy='26' r='.8'/%3E%3C/g%3E %3C/svg%3E") no-repeat center / 100% 100%;
 }
 
 /* ---------- Nieve cayendo ---------- */
@@ -232,5 +263,190 @@ html[data-theme="navidad"] .nv-flake {
   }
   100% {
     transform: translate3d(calc(var(--nv-sway, 20px) * -0.4), 112vh, 0);
+  }
+}
+
+
+/* ============================================================
+   ANIMACIONES DE LA DECORACIÓN
+   Regla de oro: solo se anima opacidad y giro (nunca tamaño ni filtros),
+   para que no haya lag. Cada elemento trae su duración (--nv-d) y desfase (--nv-s).
+   ============================================================ */
+
+@keyframes nv-tw {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes nv-star {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes nv-swing {
+  from {
+    transform: rotate(-3.5deg);
+  }
+  to {
+    transform: rotate(3.5deg);
+  }
+}
+
+@keyframes nv-spark {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes nv-alt-a {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes nv-alt-b {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes nv-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Estrella fugaz: aparece unos instantes y cruza el cielo; el resto del ciclo está oculta */
+@keyframes nv-shoot {
+  0%,
+  90% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(20deg);
+  }
+  91% {
+    opacity: 1;
+  }
+  97% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(380px, 138px) rotate(20deg);
+  }
+}
+
+.nv-fade .nv-tw {
+  animation: nv-tw var(--nv-d, 2.8s) ease-in-out var(--nv-s, 0s) infinite;
+}
+
+.nv-fade .nv-star {
+  animation: nv-star var(--nv-d, 3.4s) ease-in-out var(--nv-s, 0s) infinite;
+}
+
+.nv-fade .nv-swing {
+  transform-origin: 50% 0;
+  animation: nv-swing var(--nv-d, 4.6s) ease-in-out var(--nv-s, 0s) infinite alternate;
+}
+
+.nv-fade .nv-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nv-spark var(--nv-d, 3.2s) ease-in-out var(--nv-s, 0s) infinite;
+}
+
+.nv-fade .nv-altA {
+  animation: nv-alt-a var(--nv-d, 1.8s) ease-in-out var(--nv-s, 0s) infinite;
+}
+
+.nv-fade .nv-altB {
+  animation: nv-alt-b var(--nv-d, 1.8s) ease-in-out var(--nv-s, 0s) infinite;
+}
+
+.nv-fade .nv-pulse {
+  animation: nv-pulse var(--nv-d, 3.4s) ease-in-out var(--nv-s, 0s) infinite;
+}
+
+.nv-fade .nv-shoot {
+  position: absolute;
+  width: 110px;
+  height: 2px;
+  border-radius: 2px;
+  opacity: 0;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.95));
+  animation: nv-shoot 24s linear infinite;
+}
+
+.nv-fade .nv-shoot::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: -1.5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.7);
+}
+
+/* Se detienen cuando el encabezado no se ve, la pestaña está oculta o se apagó la nieve (❄) */
+.nv-fade.nv-paused *,
+.nv-fade.nv-paused *::after,
+html[data-nv-anim="off"] .nv-fade *,
+html[data-nv-anim="off"] .nv-fade *::after,
+html[data-nv-anim="off"] header.sticky::after {
+  animation-play-state: paused !important;
+}
+
+/* En celular: solo titilan las luces de las ramas (lo demás queda quieto) */
+@media (max-width: 639px) {
+  .nv-fade .nv-star,
+  .nv-fade .nv-swing,
+  .nv-fade .nv-spark,
+  .nv-fade .nv-pulse,
+  .nv-fade .nv-altA,
+  .nv-fade .nv-altB {
+    animation: none;
+  }
+
+  .nv-fade .nv-shoot {
+    display: none;
+  }
+}
+
+/* Si el dispositivo pide "reducir movimiento", no se anima nada */
+@media (prefers-reduced-motion: reduce) {
+  .nv-fade,
+  .nv-fade *,
+  .nv-fade *::after,
+  html[data-theme="navidad"] header.sticky::after {
+    animation: none !important;
   }
 }

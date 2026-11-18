@@ -23,6 +23,7 @@ import {
   PackageSearch,
   PhoneCall,
   ShoppingCart,
+  Snowflake,
   Users,
   X,
 } from "lucide-react";
@@ -243,8 +244,16 @@ export default function SiteHeader() {
           </p>
 
           {/* Solo en Navidad: cuenta regresiva */}
-          <p className="nv-only mx-auto max-w-7xl px-4 py-1.5">
+          <p className="nv-only relative mx-auto max-w-7xl px-4 py-1.5">
+            <Snowflake
+              size={16}
+              className="absolute left-4 top-1/2 hidden -translate-y-1/2 text-sky-100/80 md:block"
+            />
             <ChristmasCountdown />
+            <Snowflake
+              size={20}
+              className="absolute right-4 top-1/2 hidden -translate-y-1/2 text-sky-100/80 md:block"
+            />
           </p>
         </div>
 

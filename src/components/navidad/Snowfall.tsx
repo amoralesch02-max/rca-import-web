@@ -44,6 +44,7 @@ export default function Snowfall() {
 
     setAvailable(true);
     setEnabled(saved !== "off");
+    document.documentElement.setAttribute("data-nv-anim", saved === "off" ? "off" : "on");
     setCount(window.innerWidth < 640 ? 14 : 28);
   }, []);
 
@@ -64,6 +65,7 @@ export default function Snowfall() {
     const next = !enabled;
 
     setEnabled(next);
+    document.documentElement.setAttribute("data-nv-anim", next ? "on" : "off");
 
     try {
       localStorage.setItem(STORAGE_KEY, next ? "on" : "off");
