@@ -164,6 +164,39 @@ export default function SiteHeader() {
   const [bump, setBump] = useState(false);
   const previousCount = useRef(0);
 
+  // Header compacto al bajar. Se achica pasados 80 px y vuelve a su tamaño
+  // solo al llegar arriba del todo. Así no "tiembla": al cambiar de alto, el
+  // navegador corrige el scroll unos px y eso no debe volver a cambiarlo.
+  const [compact, setCompact] = useState(false);
+
+  useEffect(() => {
+    let frame = 0;
+
+    function update() {
+      frame = 0;
+      const y = window.scrollY;
+
+      setCompact((current) => (current ? y > 0 : y > 80));
+    }
+
+    function handleScroll() {
+      if (!frame) {
+        frame = window.requestAnimationFrame(update);
+      }
+    }
+
+    update();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+    };
+  }, []);
+
   // Barra de progreso de lectura (línea fina al pie del header)
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, {
@@ -262,9 +295,19 @@ export default function SiteHeader() {
         <WholesaleWatcher onChange={setWholesaleView} />
       </Suspense>
 
-      <header className="sticky top-0 z-50 border-b border-line bg-white/95 text-slate-950 shadow-sm shadow-slate-200/60">
-        {/* Barra superior fina */}
-        <div className="bg-slate-950 text-center text-[11px] font-semibold tracking-wide text-blue-200">
+      <header
+        data-compact={compact ? "true" : undefined}
+        className={`sticky top-0 z-50 border-b border-line bg-white/95 text-slate-950 transition-shadow duration-300 ${
+          compact ? "shadow-md shadow-slate-200/80" : "shadow-sm shadow-slate-200/60"
+        }`}
+      >
+        {/* Barra superior fina (se pliega cuando el header está compacto) */}
+        <div
+          className={`grid bg-slate-950 text-center text-[11px] font-semibold tracking-wide text-blue-200 transition-[grid-template-rows] duration-300 ease-out ${
+            compact ? "grid-rows-[0fr]" : "grid-rows-[1fr]"
+          }`}
+        >
+          <div className="min-h-0 overflow-hidden">
           <p className="nv-off mx-auto max-w-7xl px-4 py-1.5">
             Envíos a todo el Perú · Atención directa por WhatsApp
           </p>
@@ -281,15 +324,24 @@ export default function SiteHeader() {
               className="absolute right-4 top-1/2 hidden -translate-y-1/2 text-sky-100/80 md:block"
             />
           </p>
+          </div>
         </div>
 
-        <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 md:px-6">
+        <div
+          className={`relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 transition-[padding] duration-300 ease-out md:px-6 ${
+            compact ? "py-2" : "py-3"
+          }`}
+        >
           <Link
             href="/"
             className="group flex min-w-0 items-center gap-3"
             aria-label="Ir al inicio de RCA IMPORT"
           >
-            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-white ring-1 ring-slate-200 transition group-hover:scale-105">
+            <div
+              className={`relative shrink-0 overflow-hidden rounded-xl bg-white ring-1 ring-slate-200 transition-all duration-300 group-hover:scale-105 ${
+                compact ? "h-8 w-8" : "h-10 w-10"
+              }`}
+            >
               <Image
                 src="/logo-rca.png"
                 alt="Logo RCA IMPORT"
@@ -360,6 +412,7 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setCartOpen(true)}
+              data-cart-target
               className={`relative flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white text-slate-950 transition hover:border-brand hover:text-brand ${bump ? "animate-bump" : ""}`}
               aria-label="Ver carrito"
             >
@@ -388,6 +441,7 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setCartOpen(true)}
+              data-cart-target
               className={`relative flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white text-slate-950 ${bump ? "animate-bump" : ""}`}
               aria-label="Ver carrito"
             >

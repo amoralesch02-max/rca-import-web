@@ -17,7 +17,8 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
-import { useEffect, useMemo, useState } from "react";
+import { type MouseEvent, useEffect, useMemo, useState } from "react";
+import { flyToCart, preloadCartThumb } from "@/lib/fly-to-cart";
 
 type CartItem = {
   productId: number;
@@ -79,6 +80,13 @@ export default function ProductPurchaseActions({
     setPageUrl(window.location.href);
   }, []);
 
+  const cartImage = color?.images[0] || product.imageUrl || undefined;
+
+  // La miniatura que vuela al carrito se deja lista de antemano
+  useEffect(() => {
+    preloadCartThumb(cartImage);
+  }, [cartImage]);
+
   // Mensaje automático para WhatsApp con la opción elegida
   const whatsappUrl = useMemo(() => {
     const lines = [
@@ -105,10 +113,12 @@ export default function ProductPurchaseActions({
     pageUrl,
   ]);
 
-  function addToCart() {
+  async function addToCart(event: MouseEvent<HTMLButtonElement>) {
     if (!canBuy) {
       return;
     }
+
+    const button = event.currentTarget;
 
     const currentCart = localStorage.getItem(CART_KEY);
     let cart: CartItem[] = [];
@@ -134,17 +144,21 @@ export default function ProductPurchaseActions({
         price: pricing.final,
         variant: variantLabel,
         quantity,
-        image: color?.images[0] || product.imageUrl || undefined,
+        image: cartImage,
       });
     }
 
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    setAdded(true);
+
+    // La foto vuela al carrito del header; al llegar, el carrito "rebota"
+    await flyToCart(button, cartImage);
     window.dispatchEvent(new Event("rca-cart-updated"));
 
-    // Abre el carrito lateral: ahí está el botón para consultar por WhatsApp
-    window.dispatchEvent(new Event("rca-open-cart"));
-
-    setAdded(true);
+    // Luego se abre el carrito lateral: ahí está el botón para consultar por WhatsApp
+    window.setTimeout(() => {
+      window.dispatchEvent(new Event("rca-open-cart"));
+    }, 250);
 
     setTimeout(() => {
       setAdded(false);

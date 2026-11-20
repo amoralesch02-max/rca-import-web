@@ -12,15 +12,29 @@ import {
 import type { PublicProduct } from "@/lib/supabase-products";
 import { getWhatsappUrl } from "@/lib/store-settings";
 import { useStoreSettings } from "@/lib/use-store-settings";
-import {  } from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { motion } from "motion/react";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 const MAX_SWATCHES = 5;
 
 function getAvailableStock(product: PublicProduct) {
   return Math.max(product.stock - product.reservedStock, 0);
+}
+
+/** Segunda foto para mostrar al pasar el mouse (galería o la del 2.º color). */
+function getHoverImage(product: PublicProduct) {
+  const main = product.imageUrl;
+  const colors = getProductColors(product);
+
+  const candidates = [
+    ...(product.gallery ?? []),
+    ...(colors[0]?.images.slice(1) ?? []),
+    ...colors.slice(1).map((color) => color.images[0]),
+  ];
+
+  return candidates.find((src) => src && src !== main) ?? "";
 }
 
 export default function PublicProductCard({
@@ -32,6 +46,32 @@ export default function PublicProductCard({
   index?: number;
 }) {
   const settings = useStoreSettings();
+
+  // La 2.ª foto se descarga recién la primera vez que pasa el mouse,
+  // así la página no carga el doble de imágenes.
+  const hoverImage = getHoverImage(product);
+  const [showHoverImage, setShowHoverImage] = useState(false);
+  const [hoverImageLoaded, setHoverImageLoaded] = useState(false);
+  const hoverImageRef = useRef<HTMLDivElement>(null);
+
+  // Solo se deja ver cuando terminó de cargar (así no aparece un cuadro en blanco)
+  useEffect(() => {
+    const wrapper = hoverImageRef.current;
+
+    if (!wrapper) {
+      return;
+    }
+
+    const handleLoad = () => setHoverImageLoaded(true);
+
+    wrapper.addEventListener("load", handleLoad, true);
+
+    if (wrapper.querySelector("img")?.complete) {
+      queueMicrotask(handleLoad);
+    }
+
+    return () => wrapper.removeEventListener("load", handleLoad, true);
+  }, [showHoverImage]);
 
   const availableStock = getAvailableStock(product);
   const colors = getProductColors(product);
@@ -67,6 +107,11 @@ export default function PublicProductCard({
       <Link
         href={`/producto/${product.slug}`}
         className="relative block overflow-hidden rounded-xl"
+        onPointerEnter={(event) => {
+          if (hoverImage && event.pointerType === "mouse") {
+            setShowHoverImage(true);
+          }
+        }}
       >
         <span className="absolute left-2 top-2 z-10 rounded-md bg-alert px-2 py-0.5 text-[10px] font-bold text-white shadow-sm sm:left-2.5 sm:top-2.5">
           {product.tag || "Nuevo"}
@@ -76,12 +121,29 @@ export default function PublicProductCard({
           <CountryFlag flag={product.countryFlag} /> {product.country}
         </span>
 
-        <div className="transition duration-500 group-hover:scale-105">
+        <div className="relative transition duration-500 group-hover:scale-105">
           <ProductImage
             src={product.imageUrl}
             alt={product.name}
             sizes="(max-width: 640px) 50vw, (max-width: 1280px) 50vw, 33vw"
           />
+
+          {/* Segunda foto: aparece al pasar el mouse (solo computadora) */}
+          {showHoverImage && (
+            <div
+              ref={hoverImageRef}
+              aria-hidden="true"
+              className={`absolute inset-0 opacity-0 transition-opacity duration-300 ${
+                hoverImageLoaded ? "group-hover:opacity-100" : ""
+              }`}
+            >
+              <ProductImage
+                src={hoverImage}
+                alt=""
+                sizes="(max-width: 1280px) 50vw, 33vw"
+              />
+            </div>
+          )}
         </div>
       </Link>
 

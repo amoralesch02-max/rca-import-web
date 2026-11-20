@@ -8,7 +8,17 @@ import {
   type StoreSettings,
 } from "@/lib/store-settings";
 import { getSupabaseStoreSettings } from "@/lib/supabase-settings";
-import { BookOpen, Mail, MapPin } from "lucide-react";
+import {
+  BookOpen,
+  Landmark,
+  Mail,
+  MapPin,
+  Navigation,
+  ShieldCheck,
+  Smartphone,
+  Truck,
+  type LucideIcon,
+} from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -29,6 +39,22 @@ const supportLinks = [
   { label: "Carrito", href: "/carrito" },
   { label: "Catálogo mayorista", href: "/catalogo?tipo=mayorista" },
 ];
+
+/**
+ * Lo que se busca en Google Maps para el mapa del pie de página.
+ * Si el punto no queda exacto, cámbialo por el nombre del local tal como
+ * aparece en Google Maps (o por sus coordenadas, ej. "-18.0146,-70.2536").
+ */
+const MAP_QUERY = "Centro Comercial Túpac Amaru, Tacna, Perú";
+
+function TrustChip({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300">
+      <Icon size={14} className="shrink-0 text-brand-soft" />
+      {label}
+    </span>
+  );
+}
 
 function cleanHandle(handle: string) {
   return handle.replace("@", "").trim();
@@ -235,6 +261,26 @@ export default function SiteFooter() {
               </li>
             </ul>
 
+            {/* Mapa de la tienda (se carga solo cuando llega a la pantalla) */}
+            <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+              <iframe
+                title="Ubicación de la tienda en Google Maps"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(MAP_QUERY)}&z=16&output=embed`}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="block h-32 w-full border-0"
+              />
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(MAP_QUERY)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center gap-2 py-2 text-xs font-semibold text-slate-300 transition hover:text-white"
+              >
+                <Navigation size={13} />
+                Cómo llegar
+              </a>
+            </div>
+
             {/* Obligatorio por ley (Indecopi): visible en toda la web */}
             <Link
               href="/libro-reclamaciones"
@@ -246,7 +292,23 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col justify-between gap-3 border-t border-white/10 pt-6 text-xs text-slate-500 md:flex-row md:items-center">
+        {/* Métodos de pago y confianza */}
+        <div className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-xs font-bold uppercase tracking-widest text-slate-500">
+              Pagos
+            </span>
+            <TrustChip icon={Smartphone} label="Yape" />
+            <TrustChip icon={Landmark} label="Transferencia bancaria" />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <TrustChip icon={Truck} label="Envíos a todo el Perú" />
+            <TrustChip icon={ShieldCheck} label="Compra segura" />
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-col justify-between gap-3 border-t border-white/10 pt-6 text-xs text-slate-500 md:flex-row md:items-center">
           <p>
             © {new Date().getFullYear()} {settings.storeName}. Todos los
             derechos reservados.
