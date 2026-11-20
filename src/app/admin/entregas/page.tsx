@@ -17,19 +17,14 @@ import {
   Eye,
   EyeOff,
   Filter,
-  Gift,
   ImageIcon,
-  MapPin,
   PackageCheck,
   Pencil,
   Plus,
   RefreshCw,
   Save,
-  Search,
-  Sparkles,
   Trash2,
   Upload,
-  UserRound,
   X,
   XCircle,
   type LucideIcon,
@@ -58,7 +53,6 @@ export default function AdminDeliveriesPage() {
 
   const [ready, setReady] = useState(false);
   const [deliveries, setDeliveries] = useState<PublicDelivery[]>([]);
-  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todas");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -73,11 +67,6 @@ export default function AdminDeliveriesPage() {
   const [deletingDelivery, setDeletingDelivery] = useState(false);
 
   const [form, setForm] = useState({
-    title: "",
-    customerName: "Cliente RCA",
-    productName: "",
-    city: "Tacna",
-    description: "",
     imageUrl: "",
     deliveredAt: getTodayDate(),
     position: "1",
@@ -117,11 +106,6 @@ export default function AdminDeliveriesPage() {
     setSuccessMessage("");
 
     setForm({
-      title: "",
-      customerName: "Cliente RCA",
-      productName: "",
-      city: "Tacna",
-      description: "",
       imageUrl: "",
       deliveredAt: getTodayDate(),
       position: "1",
@@ -135,11 +119,6 @@ export default function AdminDeliveriesPage() {
     setSuccessMessage("");
 
     setForm({
-      title: delivery.title,
-      customerName: delivery.customerName,
-      productName: delivery.productName,
-      city: delivery.city,
-      description: delivery.description,
       imageUrl: delivery.imageUrl,
       deliveredAt: delivery.deliveredAt || getTodayDate(),
       position: String(delivery.position),
@@ -182,18 +161,8 @@ export default function AdminDeliveriesPage() {
     setErrorMessage("");
     setSuccessMessage("");
 
-    if (!form.title.trim()) {
-      setErrorMessage("Ingresa el título de la entrega.");
-      return;
-    }
-
-    if (!form.productName.trim()) {
-      setErrorMessage("Ingresa el producto entregado.");
-      return;
-    }
-
-    if (!form.city.trim()) {
-      setErrorMessage("Ingresa la ciudad de entrega.");
+    if (!form.imageUrl.trim()) {
+      setErrorMessage("Sube la imagen de la entrega.");
       return;
     }
 
@@ -208,11 +177,6 @@ export default function AdminDeliveriesPage() {
 
     if (editingId) {
       const result = await updateSupabaseDelivery(editingId, {
-        title: form.title.trim(),
-        customerName: form.customerName.trim() || "Cliente RCA",
-        productName: form.productName.trim(),
-        city: form.city.trim(),
-        description: form.description.trim(),
         imageUrl: form.imageUrl.trim(),
         deliveredAt: form.deliveredAt,
         position: positionNumber,
@@ -232,11 +196,6 @@ export default function AdminDeliveriesPage() {
             delivery.id === editingId
               ? {
                   ...delivery,
-                  title: form.title.trim(),
-                  customerName: form.customerName.trim() || "Cliente RCA",
-                  productName: form.productName.trim(),
-                  city: form.city.trim(),
-                  description: form.description.trim(),
                   imageUrl: form.imageUrl.trim(),
                   deliveredAt: form.deliveredAt,
                   position: positionNumber,
@@ -252,12 +211,14 @@ export default function AdminDeliveriesPage() {
       return;
     }
 
+    // Los textos ya no se piden ni se muestran; se guardan vacíos para
+    // no tocar la tabla (las columnas siguen existiendo).
     const result = await createSupabaseDelivery({
-      title: form.title.trim(),
-      customerName: form.customerName.trim() || "Cliente RCA",
-      productName: form.productName.trim(),
-      city: form.city.trim(),
-      description: form.description.trim(),
+      title: "",
+      customerName: "",
+      productName: "",
+      city: "",
+      description: "",
       imageUrl: form.imageUrl.trim(),
       deliveredAt: form.deliveredAt,
       position: positionNumber,
@@ -335,7 +296,6 @@ export default function AdminDeliveriesPage() {
   }
 
   function resetFilters() {
-    setSearch("");
     setStatusFilter("Todas");
   }
 
@@ -350,21 +310,8 @@ export default function AdminDeliveriesPage() {
       result = result.filter((delivery) => !delivery.isActive);
     }
 
-    if (search.trim()) {
-      const query = search.toLowerCase();
-
-      result = result.filter(
-        (delivery) =>
-          delivery.title.toLowerCase().includes(query) ||
-          delivery.customerName.toLowerCase().includes(query) ||
-          delivery.productName.toLowerCase().includes(query) ||
-          delivery.city.toLowerCase().includes(query) ||
-          delivery.description.toLowerCase().includes(query)
-      );
-    }
-
     return result.sort((a, b) => a.position - b.position);
-  }, [deliveries, search, statusFilter]);
+  }, [deliveries, statusFilter]);
 
   const stats = useMemo(() => {
     const active = deliveries.filter((delivery) => delivery.isActive).length;
@@ -377,10 +324,7 @@ export default function AdminDeliveriesPage() {
     };
   }, [deliveries]);
 
-  const activeFilterCount = [
-    Boolean(search.trim()),
-    statusFilter !== "Todas",
-  ].filter(Boolean).length;
+  const activeFilterCount = [statusFilter !== "Todas"].filter(Boolean).length;
 
   if (!ready) {
     return null;
@@ -427,12 +371,12 @@ export default function AdminDeliveriesPage() {
           </p>
 
           <h2 className="mt-3 text-3xl font-black">
-            {editingId ? "Actualizar experiencia" : "Agregar entrega"}
+            {editingId ? "Actualizar entrega" : "Agregar entrega"}
           </h2>
 
           <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">
-            Estas publicaciones se mostrarán como prueba visual de confianza
-            para los clientes.
+            Solo necesitas la foto y la fecha. Se mostrará como prueba visual
+            de confianza, con el sello de entrega verificada.
           </p>
 
           {errorMessage && (
@@ -450,58 +394,6 @@ export default function AdminDeliveriesPage() {
           )}
 
           <div className="mt-6 grid gap-4">
-            <InputField
-              label="Título *"
-              value={form.title}
-              onChange={(value) => setForm({ ...form, title: value })}
-              placeholder="Ejemplo: iPhone 15 Pro entregado"
-              icon={Sparkles}
-            />
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <InputField
-                label="Cliente"
-                value={form.customerName}
-                onChange={(value) =>
-                  setForm({ ...form, customerName: value })
-                }
-                placeholder="Cliente RCA"
-                icon={UserRound}
-              />
-
-              <InputField
-                label="Ciudad *"
-                value={form.city}
-                onChange={(value) => setForm({ ...form, city: value })}
-                placeholder="Tacna"
-                icon={MapPin}
-              />
-            </div>
-
-            <InputField
-              label="Producto entregado *"
-              value={form.productName}
-              onChange={(value) => setForm({ ...form, productName: value })}
-              placeholder="iPhone 15 Pro Max 256GB"
-              icon={Gift}
-            />
-
-            <div>
-              <label className="text-sm font-black text-slate-700">
-                Descripción
-              </label>
-
-              <textarea
-                value={form.description}
-                onChange={(event) =>
-                  setForm({ ...form, description: event.target.value })
-                }
-                rows={4}
-                placeholder="Ejemplo: Entrega realizada con coordinación directa y producto verificado."
-                className="mt-2 w-full resize-none rounded-2xl border border-slate-200 bg-[#f6f8fc] px-4 py-4 text-sm font-semibold outline-none transition focus:border-[#0057A8] focus:bg-white"
-              />
-            </div>
-
             <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
               <InputField
                 label="Fecha de entrega"
@@ -525,7 +417,7 @@ export default function AdminDeliveriesPage() {
 
             <div>
               <label className="text-sm font-black text-slate-700">
-                Imagen de entrega
+                Imagen de entrega *
               </label>
 
               <div className="mt-2 grid gap-3">
@@ -561,7 +453,7 @@ export default function AdminDeliveriesPage() {
                 <img
                   src={form.imageUrl}
                   alt="Vista previa de entrega"
-                  className="h-64 w-full rounded-[1.2rem] object-cover"
+                  className="max-h-96 w-full rounded-[1.2rem] object-contain"
                 />
               </div>
             )}
@@ -616,28 +508,7 @@ export default function AdminDeliveriesPage() {
         </form>
 
         <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="grid gap-4 xl:grid-cols-[1fr_170px_160px]">
-            <div className="flex h-14 items-center gap-3 rounded-2xl border border-slate-200 bg-[#f6f8fc] px-4 transition focus-within:border-[#0057A8] focus-within:bg-white">
-              <Search className="shrink-0 text-slate-400" size={20} />
-
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar entrega, cliente, producto o ciudad..."
-                className="h-full w-full bg-transparent text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-400"
-              />
-
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch("")}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-slate-400 transition hover:text-[#E31B23]"
-                >
-                  <X size={17} />
-                </button>
-              )}
-            </div>
-
+          <div className="grid gap-4 sm:grid-cols-[1fr_160px]">
             <select
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
@@ -732,9 +603,7 @@ export default function AdminDeliveriesPage() {
       <ConfirmModal
         open={Boolean(deliveryToDelete)}
         title="Eliminar entrega"
-        description={`¿Seguro que deseas eliminar "${
-          deliveryToDelete?.title ?? ""
-        }"? Esta acción no se puede deshacer.`}
+        description="¿Seguro que deseas eliminar esta entrega? Esta acción no se puede deshacer."
         confirmText="Sí, eliminar"
         cancelText="Cancelar"
         loading={deletingDelivery}
@@ -848,8 +717,8 @@ function DeliveryCard({
       {delivery.imageUrl ? (
         <img
           src={delivery.imageUrl}
-          alt={delivery.title}
-          className="h-64 w-full object-cover"
+          alt={delivery.title || "Entrega"}
+          className="block max-h-[28rem] w-full bg-[#f6f8fc] object-contain"
         />
       ) : (
         <div className="flex h-64 items-center justify-center bg-[#f6f8fc]">
@@ -869,28 +738,6 @@ function DeliveryCard({
             {formatDate(delivery.deliveredAt)}
           </span>
         </div>
-
-        <h3 className="mt-4 text-2xl font-black leading-tight text-slate-950">
-          {delivery.title}
-        </h3>
-
-        <p className="mt-2 text-sm font-black text-[#E31B23]">
-          {delivery.productName}
-        </p>
-
-        <div className="mt-3 flex flex-wrap gap-2 text-xs font-black">
-          <span className="rounded-full bg-[#f6f8fc] px-3 py-2 text-slate-600">
-            Cliente: {delivery.customerName}
-          </span>
-
-          <span className="rounded-full bg-[#f6f8fc] px-3 py-2 text-slate-600">
-            Ciudad: {delivery.city}
-          </span>
-        </div>
-
-        <p className="mt-4 text-sm font-semibold leading-6 text-slate-500">
-          {delivery.description || "Sin descripción"}
-        </p>
 
         <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           <button
@@ -939,4 +786,4 @@ function EmptyState() {
       </p>
     </div>
   );
-}
+}

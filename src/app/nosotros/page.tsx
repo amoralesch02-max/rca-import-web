@@ -1,6 +1,5 @@
 "use client";
 
-import CountUp from "@/components/CountUp";
 import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
@@ -8,38 +7,27 @@ import {
   getSupabaseDeliveries,
   type PublicDelivery,
 } from "@/lib/supabase-deliveries";
-import { getSupabaseProducts } from "@/lib/supabase-products";
 import { getSupabaseStoreSettings } from "@/lib/supabase-settings";
 import {
   DEFAULT_STORE_SETTINGS,
   getWhatsappUrl,
   type StoreSettings,
 } from "@/lib/store-settings";
-import {
-  BadgeCheck,
-  CalendarDays,
-  ChevronRight,
-  Headphones,
-  MapPin,
-  PackageCheck,
-  Truck,
-  Wallet,
-  X,
-} from "lucide-react";
+import { BadgeCheck, ChevronRight, PackageCheck, X } from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 const container = "mx-auto max-w-7xl px-5 md:px-6";
 
-function formatDate(date: string) {
+function formatDate(date: string, month: "short" | "long" = "short") {
   if (!date) {
-    return "Fecha reciente";
+    return "";
   }
 
   return new Date(`${date}T00:00:00`).toLocaleDateString("es-PE", {
     day: "2-digit",
-    month: "long",
+    month,
     year: "numeric",
   });
 }
@@ -48,23 +36,18 @@ export default function AboutPage() {
   const [settings, setSettings] =
     useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
   const [deliveries, setDeliveries] = useState<PublicDelivery[]>([]);
-  const [productCount, setProductCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [cityFilter, setCityFilter] = useState("Todas");
   const [selected, setSelected] = useState<PublicDelivery | null>(null);
 
   useEffect(() => {
     async function loadData() {
-      const [supabaseSettings, supabaseDeliveries, supabaseProducts] =
-        await Promise.all([
-          getSupabaseStoreSettings(),
-          getSupabaseDeliveries(),
-          getSupabaseProducts(),
-        ]);
+      const [supabaseSettings, supabaseDeliveries] = await Promise.all([
+        getSupabaseStoreSettings(),
+        getSupabaseDeliveries(),
+      ]);
 
       setSettings(supabaseSettings);
       setDeliveries(supabaseDeliveries);
-      setProductCount(supabaseProducts.length);
       setLoading(false);
     }
 
@@ -88,55 +71,12 @@ export default function AboutPage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [selected]);
 
-  const cities = useMemo(() => {
-    return Array.from(
-      new Set(deliveries.map((delivery) => delivery.city).filter(Boolean))
-    ).sort((a, b) => a.localeCompare(b));
-  }, [deliveries]);
-
-  const visibleDeliveries = useMemo(() => {
-    if (cityFilter === "Todas") {
-      return deliveries;
-    }
-
-    return deliveries.filter((delivery) => delivery.city === cityFilter);
-  }, [deliveries, cityFilter]);
-
   const whatsappUrl = useMemo(() => {
     return getWhatsappUrl(
       settings.whatsappMain,
       "Hola RCA IMPORT, vi las reseñas en su web y quisiera consultar por un producto."
     );
   }, [settings.whatsappMain]);
-
-  const stats = [
-    { value: deliveries.length, label: "Entregas verificadas" },
-    { value: cities.length, label: "Ciudades atendidas" },
-    { value: productCount, label: "Productos en catálogo" },
-  ].filter((item) => item.value > 0);
-
-  const values = [
-    {
-      icon: PackageCheck,
-      title: "Productos seleccionados",
-      text: "Tecnología importada y accesorios, con el stock actualizado en el catálogo.",
-    },
-    {
-      icon: Headphones,
-      title: "Atención personalizada",
-      text: "Te asesoramos por WhatsApp antes de comprar y coordinamos cada pedido contigo.",
-    },
-    {
-      icon: Truck,
-      title: "Envíos a todo el Perú",
-      text: settings.shippingMessage,
-    },
-    {
-      icon: Wallet,
-      title: "Pagos claros",
-      text: settings.paymentMessage,
-    },
-  ];
 
   return (
     <main className="min-h-screen bg-bg text-slate-950">
@@ -176,62 +116,8 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ================= NÚMEROS (datos reales) ================= */}
-      {!loading && stats.length > 0 && (
-        <section className={`${container} -mt-8 relative z-20`}>
-          <div
-            className="grid gap-4 rounded-2xl border border-line bg-white p-6 shadow-lg shadow-slate-200/60"
-            style={{
-              gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))`,
-            }}
-          >
-            {stats.map((item) => (
-              <div key={item.label} className="text-center">
-                <p className="text-3xl font-bold text-brand md:text-4xl">
-                  <CountUp value={item.value} />
-                </p>
-                <p className="mt-1 text-xs font-medium text-slate-500 md:text-sm">
-                  {item.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ================= CÓMO TRABAJAMOS ================= */}
-      <section className={`${container} py-14`}>
-        <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-          Nuestra forma de trabajar
-        </h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Lo que puedes esperar al comprar con nosotros.
-        </p>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {values.map((item, index) => (
-            <Reveal key={item.title} delay={index * 0.08} className="h-full">
-            <div className="h-full rounded-2xl border border-line bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-brand">
-                <item.icon size={20} />
-              </div>
-
-              <h3 className="mt-4 text-base font-semibold">{item.title}</h3>
-
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                {item.text}
-              </p>
-            </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ================= RESEÑAS ================= */}
-      <section
-        id="resenas"
-        className="scroll-mt-28 border-t border-line bg-white py-14"
-      >
+      {/* ================= ENTREGAS ================= */}
+      <section id="resenas" className="scroll-mt-28 bg-white py-14">
         <div className={container}>
           <div className="max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-widest text-alert">
@@ -248,55 +134,34 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* Filtro por ciudad */}
-          {cities.length > 1 && (
-            <div className="mt-6 flex flex-wrap gap-2">
-              {["Todas", ...cities].map((city) => (
-                <button
-                  key={city}
-                  type="button"
-                  onClick={() => setCityFilter(city)}
-                  className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
-                    cityFilter === city
-                      ? "border-brand bg-brand text-white"
-                      : "border-line bg-white text-slate-600 hover:border-brand hover:text-brand"
-                  }`}
-                >
-                  {city}
-                </button>
-              ))}
-            </div>
-          )}
-
           {loading ? (
             <div className="mt-8 rounded-2xl border border-line bg-bg p-10 text-center text-sm text-slate-500">
               Cargando reseñas...
             </div>
-          ) : visibleDeliveries.length > 0 ? (
-            <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {visibleDeliveries.map((delivery, index) => (
+          ) : deliveries.length > 0 ? (
+            /* Mosaico: cada foto conserva su proporción original */
+            <div className="mt-8 columns-1 gap-4 sm:columns-2 lg:columns-3">
+              {deliveries.map((delivery, index) => (
                 <Reveal
                   key={delivery.id}
                   delay={(index % 3) * 0.08}
-                  className="h-full"
-                >
-                <article
-                  className="group overflow-hidden rounded-2xl border border-line bg-bg transition hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-slate-200"
+                  className="mb-4 break-inside-avoid"
                 >
                   <button
                     type="button"
                     onClick={() => setSelected(delivery)}
-                    aria-label={`Ampliar imagen: ${delivery.title}`}
-                    className="relative block h-64 w-full overflow-hidden bg-surface-2"
+                    aria-label="Ampliar imagen de la entrega"
+                    className="group relative block w-full overflow-hidden rounded-2xl border border-line bg-surface-2 text-left shadow-sm transition hover:border-brand/40 hover:shadow-xl hover:shadow-slate-200"
                   >
                     {delivery.imageUrl ? (
                       <img
                         src={delivery.imageUrl}
-                        alt={delivery.title}
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        alt={delivery.title || "Entrega verificada"}
+                        loading="lazy"
+                        className="block h-auto w-full transition duration-500 group-hover:scale-[1.03]"
                       />
                     ) : (
-                      <span className="flex h-full w-full items-center justify-center">
+                      <span className="flex aspect-[4/3] w-full items-center justify-center">
                         <PackageCheck className="text-slate-300" size={48} />
                       </span>
                     )}
@@ -305,41 +170,13 @@ export default function AboutPage() {
                       <BadgeCheck size={13} />
                       Entrega verificada
                     </span>
-                  </button>
 
-                  <div className="p-5">
-                    <h3 className="text-lg font-semibold leading-snug">
-                      {delivery.title}
-                    </h3>
-
-                    <p className="mt-1 text-sm font-semibold text-alert">
-                      {delivery.productName}
-                    </p>
-
-                    <p className="mt-3 line-clamp-4 text-sm leading-6 text-slate-500">
-                      {delivery.description ||
-                        "Entrega realizada con coordinación directa y producto verificado."}
-                    </p>
-
-                    <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-4 text-xs text-slate-500">
-                      <span className="font-semibold text-slate-700">
-                        {delivery.customerName || "Cliente RCA"}
-                      </span>
-
-                      {delivery.city && (
-                        <span className="inline-flex items-center gap-1.5">
-                          <MapPin size={12} />
-                          {delivery.city}
-                        </span>
-                      )}
-
-                      <span className="inline-flex items-center gap-1.5">
-                        <CalendarDays size={12} />
+                    {delivery.deliveredAt && (
+                      <span className="absolute bottom-3 left-3 rounded-md bg-slate-950/75 px-2.5 py-1 text-[11px] font-semibold text-white">
                         {formatDate(delivery.deliveredAt)}
                       </span>
-                    </div>
-                  </div>
-                </article>
+                    )}
+                  </button>
                 </Reveal>
               ))}
             </div>
@@ -389,7 +226,7 @@ export default function AboutPage() {
         <div
           className="animate-fade-in fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4"
           role="dialog"
-          aria-label={selected.title}
+          aria-label="Entrega verificada"
           onClick={() => setSelected(null)}
         >
           <button
@@ -408,18 +245,22 @@ export default function AboutPage() {
             {selected.imageUrl && (
               <img
                 src={selected.imageUrl}
-                alt={selected.title}
-                className="max-h-[70vh] w-full bg-slate-100 object-contain"
+                alt={selected.title || "Entrega verificada"}
+                className="max-h-[78vh] w-full bg-slate-100 object-contain"
               />
             )}
 
-            <div className="p-5">
-              <p className="text-base font-semibold">{selected.title}</p>
-              <p className="mt-1 text-sm text-slate-500">
-                {selected.customerName || "Cliente RCA"}
-                {selected.city ? ` · ${selected.city}` : ""} ·{" "}
-                {formatDate(selected.deliveredAt)}
-              </p>
+            <div className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+              <span className="inline-flex items-center gap-1.5 font-semibold text-alert">
+                <BadgeCheck size={16} />
+                Entrega verificada
+              </span>
+
+              {selected.deliveredAt && (
+                <span className="text-slate-500">
+                  {formatDate(selected.deliveredAt, "long")}
+                </span>
+              )}
             </div>
           </div>
         </div>
