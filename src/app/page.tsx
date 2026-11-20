@@ -1,6 +1,8 @@
 "use client";
 
+import CountryFlag from "@/components/CountryFlag";
 import ChristmasBanner from "@/components/navidad/ChristmasBanner";
+import GiftElf from "@/components/navidad/GiftElf";
 import HeroDecorLoader from "@/components/navidad/HeroDecorLoader";
 import HeroCarousel, {
   type HeroCarouselItem,
@@ -31,6 +33,7 @@ import {
   type StoreSettings,
 } from "@/lib/store-settings";
 import {
+  Gift,
   Headphones,
   PackageCheck,
   Plus,
@@ -168,13 +171,12 @@ export default function HomePage() {
     return [...fromBanners, ...fromProducts].slice(0, 6);
   }, [banners, featuredProducts]);
 
-  const lowestPrice = useMemo(() => {
-    const prices = products
-      .map((product) => getStartingPrice(product).final)
-      .filter((price) => price > 0);
-
-    return prices.length > 0 ? Math.min(...prices) : null;
-  }, [products]);
+  const giftUrl = useMemo(() => {
+    return getWhatsappUrl(
+      settings.whatsappMain,
+      "Hola RCA IMPORT, busco un regalo. ¿Me ayudan a elegir?"
+    );
+  }, [settings.whatsappMain]);
 
   const whatsappUrl = useMemo(() => {
     return getWhatsappUrl(
@@ -256,14 +258,28 @@ export default function HomePage() {
             delay={0.1}
             className="relative mx-auto mt-4 max-w-3xl md:mt-6"
           >
-            {lowestPrice !== null && (
-              <div className="absolute left-0 top-0 z-[250] rounded-xl bg-white px-3.5 py-2 text-slate-950 shadow-lg sm:px-4 sm:py-2.5">
-                <p className="text-sm font-bold">Desde S/ {lowestPrice}</p>
-                <p className="hidden text-[11px] text-slate-500 sm:block">
-                  Envíos a todo el Perú
-                </p>
-              </div>
-            )}
+            <a
+              href={giftUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="absolute left-0 top-0 z-[250] flex items-center gap-2.5 rounded-xl bg-white px-3.5 py-2 text-slate-950 shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl sm:px-4 sm:py-2.5"
+            >
+              {/* Fuera de Navidad: icono de regalo. En Navidad: el duende flotando */}
+              <span className="nv-off flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-alert">
+                <Gift size={16} />
+              </span>
+
+              <span className="block">
+                <span className="block text-sm font-bold">
+                  ¿Buscas un regalo?
+                </span>
+                <span className="block text-[11px] text-slate-500">
+                  Te ayudamos a elegir
+                </span>
+              </span>
+
+              <GiftElf className="pointer-events-none absolute -right-5 -top-4 w-11 sm:-top-9 sm:w-12" />
+            </a>
 
             <HeroCarousel items={carouselItems} />
           </Reveal>
@@ -441,7 +457,8 @@ export default function HomePage() {
                       {product.name}
                     </h3>
                     <p className="mt-1 text-xs text-slate-500">
-                      {product.brand} · {product.countryFlag} {product.country}
+                      {product.brand} · <CountryFlag flag={product.countryFlag} />{" "}
+                      {product.country}
                     </p>
                   </div>
 

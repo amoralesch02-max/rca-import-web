@@ -271,7 +271,13 @@ export default function HeroCarousel({
                       />
                     </div>
 
-                    <div className="px-4 py-3">
+                    {/* Solo la tarjeta central muestra texto: en las laterales
+                        quedaba tapado por la tarjeta de adelante. */}
+                    <div
+                      className={`px-4 py-3 transition-opacity duration-500 ${
+                        isCenter ? "opacity-100" : "opacity-0"
+                      }`}
+                    >
                       <p className="line-clamp-1 text-sm font-semibold">
                         {item.title}
                       </p>

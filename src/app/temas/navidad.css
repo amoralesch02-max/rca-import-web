@@ -450,3 +450,49 @@ html[data-nv-anim="off"] header.sticky::after {
     animation: none !important;
   }
 }
+
+/* ---------- Duende flotante junto a "Ideal para regalar" ---------- */
+@keyframes nv-bob {
+  0%, 100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(2deg);
+  }
+}
+
+@keyframes nv-elf-tw {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+html[data-theme="navidad"] .nv-elf {
+  transform-origin: 50% 90%;
+  filter: drop-shadow(0 4px 4px rgba(0, 20, 60, 0.35));
+  animation: nv-bob 3.6s ease-in-out infinite;
+}
+
+.nv-elf .tw {
+  animation: nv-elf-tw 2.4s ease-in-out infinite;
+}
+
+.nv-elf .tw.b {
+  animation-delay: 1.1s;
+}
+
+/* Se detiene con el botón de nieve (❄) y con "reducir movimiento" */
+html[data-nv-anim="off"] .nv-elf,
+html[data-nv-anim="off"] .nv-elf .tw {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nv-elf,
+  .nv-elf .tw {
+    animation: none !important;
+  }
+}

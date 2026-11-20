@@ -1,5 +1,6 @@
 "use client";
 
+import CountryFlag from "@/components/CountryFlag";
 import ProductImage from "@/components/ProductImage";
 import { getColorHex, type ColorOption } from "@/lib/product-options";
 import {
@@ -145,7 +146,7 @@ export default function ProductMediaGallery({
       {/* Imagen principal */}
       <div className="relative overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
         <span className="absolute left-4 top-4 z-20 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-line">
-          {product.countryFlag} Importado de {product.country}
+          <CountryFlag flag={product.countryFlag} /> Importado de {product.country}
         </span>
 
         <div

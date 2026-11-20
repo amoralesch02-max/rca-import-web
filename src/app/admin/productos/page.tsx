@@ -1,5 +1,6 @@
 "use client";
 
+import CountryFlag from "@/components/CountryFlag";
 import AdminShell from "@/components/AdminShell";
 import ConfirmModal from "@/components/ConfirmModal";
 import { supabase } from "@/lib/supabase";
@@ -509,7 +510,7 @@ export default function AdminProductsPage() {
                               </p>
 
                               <p className="mt-1 text-xs font-bold text-slate-400">
-                                {product.countryFlag} {product.country} ·{" "}
+                                <CountryFlag flag={product.countryFlag} /> {product.country} ·{" "}
                                 {product.condition}
                               </p>
 
@@ -879,7 +880,8 @@ function MobileProductCard({
           </p>
 
           <p className="mt-1 text-xs font-bold text-slate-400">
-            {product.countryFlag} {product.country} · {product.condition}
+            <CountryFlag flag={product.countryFlag} /> {product.country} ·{" "}
+            {product.condition}
           </p>
 
           <div className="mt-3 flex flex-wrap gap-2">

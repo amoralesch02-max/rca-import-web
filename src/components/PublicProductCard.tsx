@@ -1,5 +1,6 @@
 "use client";
 
+import CountryFlag from "@/components/CountryFlag";
 import ProductImage from "@/components/ProductImage";
 import {
   getColorHex,
@@ -72,7 +73,7 @@ export default function PublicProductCard({
         </span>
 
         <span className="absolute right-2.5 top-2.5 z-10 hidden rounded-md bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-950 shadow-sm ring-1 ring-line sm:inline-block">
-          {product.countryFlag} {product.country}
+          <CountryFlag flag={product.countryFlag} /> {product.country}
         </span>
 
         <div className="transition duration-500 group-hover:scale-105">

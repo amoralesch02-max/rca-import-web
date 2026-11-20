@@ -1,5 +1,6 @@
 "use client";
 
+import CountryFlag from "@/components/CountryFlag";
 import ProductMediaGallery from "@/components/ProductMediaGallery";
 import ProductPurchaseActions from "@/components/ProductPurchaseActions";
 import PublicProductCard from "@/components/PublicProductCard";
@@ -387,7 +388,7 @@ export default function ProductDetailPage() {
                 href={`/pais/${countrySlug}`}
                 className="rounded-full bg-white px-3 py-1.5 text-slate-600 ring-1 ring-line transition hover:text-brand hover:ring-brand"
               >
-                {product.countryFlag} {product.country}
+                <CountryFlag flag={product.countryFlag} /> {product.country}
               </Link>
             </div>
 

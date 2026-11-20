@@ -28,9 +28,9 @@ import {
   X,
 } from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { motion, useScroll, useSpring } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 type CartItem = {
   quantity: number;
@@ -82,8 +82,24 @@ function getCartCount() {
   }
 }
 
+/**
+ * Avisa al menú si se está viendo el catálogo mayorista (?tipo=mayorista).
+ * Va aparte y dentro de <Suspense> porque useSearchParams lo exige en Next.
+ */
+function WholesaleWatcher({ onChange }: { onChange: (value: boolean) => void }) {
+  const params = useSearchParams();
+  const isWholesale = params.get("tipo") === "mayorista";
+
+  useEffect(() => {
+    onChange(isWholesale);
+  }, [isWholesale, onChange]);
+
+  return null;
+}
+
 export default function SiteHeader() {
   const pathname = usePathname();
+  const [wholesaleView, setWholesaleView] = useState(false);
 
   const [settings, setSettings] =
     useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
@@ -227,8 +243,14 @@ export default function SiteHeader() {
       return pathname === "/";
     }
 
+    // "Mayorista" es el catálogo con ?tipo=mayorista
     if (href.includes("?")) {
-      return false;
+      return pathname.startsWith("/catalogo") && wholesaleView;
+    }
+
+    // "Catálogo" no se marca cuando se está viendo el mayorista
+    if (href === "/catalogo") {
+      return pathname.startsWith("/catalogo") && !wholesaleView;
     }
 
     return pathname.startsWith(href);
@@ -236,6 +258,10 @@ export default function SiteHeader() {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <WholesaleWatcher onChange={setWholesaleView} />
+      </Suspense>
+
       <header className="sticky top-0 z-50 border-b border-line bg-white/95 text-slate-950 shadow-sm shadow-slate-200/60">
         {/* Barra superior fina */}
         <div className="bg-slate-950 text-center text-[11px] font-semibold tracking-wide text-blue-200">

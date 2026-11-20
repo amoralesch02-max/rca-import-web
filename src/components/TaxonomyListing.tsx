@@ -1,5 +1,6 @@
 "use client";
 
+import CountryFlag from "@/components/CountryFlag";
 import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import PublicProductCard from "@/components/PublicProductCard";
 import SiteFooter from "@/components/SiteFooter";
@@ -420,7 +421,7 @@ export default function TaxonomyListing({
           )}
           <span className="mx-2">/</span>
           <span className="text-slate-700">
-            {titlePrefix} {title}
+            {titlePrefix && <CountryFlag flag={titlePrefix} />} {title}
           </span>
         </p>
 
@@ -435,7 +436,9 @@ export default function TaxonomyListing({
           {/* ============ Contenido ============ */}
           <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-              {titlePrefix && <span className="mr-2">{titlePrefix}</span>}
+              {titlePrefix && <span className="mr-2">
+                  <CountryFlag flag={titlePrefix} />
+                </span>}
               {title}
             </h1>
 
