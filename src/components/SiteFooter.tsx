@@ -8,7 +8,7 @@ import {
   type StoreSettings,
 } from "@/lib/store-settings";
 import { getSupabaseStoreSettings } from "@/lib/supabase-settings";
-import { Mail, MapPin } from "lucide-react";
+import { BookOpen, Mail, MapPin } from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -234,6 +234,15 @@ export default function SiteFooter() {
                 <span className="break-all">{settings.adminEmail}</span>
               </li>
             </ul>
+
+            {/* Obligatorio por ley (Indecopi): visible en toda la web */}
+            <Link
+              href="/libro-reclamaciones"
+              className="mt-5 inline-flex items-center gap-2.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/10"
+            >
+              <BookOpen size={18} className="shrink-0 text-brand-soft" />
+              Libro de Reclamaciones
+            </Link>
           </div>
         </div>
 

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
 import {
   BarChart3,
+  BookOpen,
   Building2,
   ChevronRight,
   ClipboardList,
@@ -76,6 +77,12 @@ const adminLinks = [
   icon: PackageCheck,
   description: "Entregas relizadas",
 },
+  {
+    label: "Reclamaciones",
+    href: "/admin/reclamaciones",
+    icon: BookOpen,
+    description: "Libro de Reclamaciones",
+  },
   {
     label: "Banners",
     href: "/admin/banners",
