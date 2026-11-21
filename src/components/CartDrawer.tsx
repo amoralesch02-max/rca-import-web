@@ -1,5 +1,8 @@
 "use client";
 
+import GiftElf from "@/components/navidad/GiftElf";
+import ShoppingBagArt from "@/components/ShoppingBagArt";
+import { celebrate } from "@/lib/celebrate";
 import ProductImage from "@/components/ProductImage";
 import { getWhatsappUrl } from "@/lib/store-settings";
 import {
@@ -9,7 +12,6 @@ import {
 import {
   Minus,
   Plus,
-  ShoppingBag,
   Trash2,
   X,
 } from "lucide-react";
@@ -244,16 +246,20 @@ export default function CartDrawer({
         {cart.length === 0 ? (
           /* Carrito vacío */
           <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-brand">
-              <ShoppingBag size={28} />
-            </div>
+            {/* Ilustración: duende en Navidad, bolsa de RCA el resto del año */}
+            <GiftElf className="mx-auto w-24" />
+            <ShoppingBagArt className="nv-off h-28 w-28" />
 
-            <p className="mt-5 text-base font-semibold">
+            <p className="mt-4 text-base font-semibold">
               Tu carrito está vacío
             </p>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="nv-off mt-1 text-sm text-slate-500">
               Agrega productos desde el catálogo para verlos aquí.
+            </p>
+            <p className="nv-only mt-1 text-sm text-slate-500">
+              Nuestro duende está listo para envolver tu regalo. Elige algo
+              del catálogo.
             </p>
 
             <Link
@@ -376,6 +382,7 @@ export default function CartDrawer({
                   href={whatsappUrl}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => celebrate()}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-green-500 text-sm font-semibold text-white shadow-lg shadow-green-200 transition hover:bg-green-600"
                 >
                   <WhatsAppIcon size={17} />

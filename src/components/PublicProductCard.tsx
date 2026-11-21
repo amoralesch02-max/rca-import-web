@@ -195,7 +195,7 @@ export default function PublicProductCard({
           )}
 
           {discount && discount > 0 && (
-            <span className="rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-alert sm:px-2 sm:text-[11px]">
+            <span className="shine rounded-md bg-alert px-1.5 py-0.5 text-[10px] font-bold text-white sm:px-2 sm:text-[11px]">
               -{discount}%
             </span>
           )}

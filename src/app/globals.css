@@ -220,3 +220,67 @@ details > summary::-webkit-details-marker {
 .nv-only-flex {
   display: none;
 }
+
+/* ---------- Flotar suave (ilustraciones: carrito vacío, 404) ---------- */
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes float-shadow {
+  0%, 100% { transform: scaleX(1); opacity: 0.12; }
+  50% { transform: scaleX(0.85); opacity: 0.07; }
+}
+
+@keyframes art-twinkle {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+.float-soft {
+  animation: float-soft 3.6s ease-in-out infinite;
+  overflow: visible;
+}
+
+.float-soft .float-shadow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: float-shadow 3.6s ease-in-out infinite;
+}
+
+.float-soft .tw {
+  animation: art-twinkle 2.4s ease-in-out infinite;
+}
+
+.float-soft .tw.b {
+  animation-delay: 1.1s;
+}
+
+/* ---------- Brillo en etiquetas de oferta ----------
+   Un reflejo de luz cruza la etiqueta cada 4 s. Solo anima "transform"
+   (muy liviano) y queda dentro de la etiqueta. */
+@keyframes shine-sweep {
+  0%, 70% { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%) skewX(-20deg); }
+}
+
+.shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.75) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shine-sweep 4s ease-in-out 1.5s infinite;
+}

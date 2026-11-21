@@ -1,5 +1,8 @@
 "use client";
 
+import GiftElf from "@/components/navidad/GiftElf";
+import ShoppingBagArt from "@/components/ShoppingBagArt";
+import { celebrate } from "@/lib/celebrate";
 import ConfirmModal from "@/components/ConfirmModal";
 import ProductImage from "@/components/ProductImage";
 import SiteFooter from "@/components/SiteFooter";
@@ -21,7 +24,6 @@ import {
   PackageCheck,
   Plus,
   ShieldCheck,
-  ShoppingBag,
   Trash2,
   Truck,
 } from "lucide-react";
@@ -195,15 +197,19 @@ export default function CartPage() {
         {cart.length === 0 ? (
           /* ================= CARRITO VACÍO ================= */
           <div className="mt-8 rounded-2xl border border-line bg-white p-10 text-center md:p-16">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-brand">
-              <ShoppingBag size={36} />
-            </div>
+            {/* Ilustración: duende en Navidad, bolsa de RCA el resto del año */}
+            <GiftElf className="mx-auto w-32" />
+            <ShoppingBagArt className="nv-off mx-auto h-36 w-36" />
 
-            <h2 className="mt-6 text-2xl font-bold">Tu carrito está vacío</h2>
+            <h2 className="mt-5 text-2xl font-bold">Tu carrito está vacío</h2>
 
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+            <p className="nv-off mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
               Agrega productos desde el catálogo para armar tu pedido y
               consultarlo por WhatsApp con RCA IMPORT.
+            </p>
+            <p className="nv-only mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+              Nuestro duende está listo para envolver tu regalo. Elige algo del
+              catálogo y arma tu pedido por WhatsApp.
             </p>
 
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
@@ -368,6 +374,7 @@ export default function CartPage() {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => celebrate()}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-green-500 text-sm font-semibold text-white shadow-lg shadow-green-200 transition hover:bg-green-600"
                 >
                   <WhatsAppIcon size={17} />

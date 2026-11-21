@@ -411,7 +411,7 @@ export default function ProductDetailPage() {
               )}
 
               {discountPercentage && (
-                <span className="rounded-md bg-alert px-2.5 py-1 text-xs font-bold text-white">
+                <span className="shine rounded-md bg-alert px-2.5 py-1 text-xs font-bold text-white">
                   -{discountPercentage}%
                 </span>
               )}

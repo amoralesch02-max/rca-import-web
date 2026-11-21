@@ -13,10 +13,16 @@ import {
   getWhatsappUrl,
   type StoreSettings,
 } from "@/lib/store-settings";
-import { BadgeCheck, ChevronRight, PackageCheck, X } from "lucide-react";
+import {
+  BadgeCheck,
+  ChevronLeft,
+  ChevronRight,
+  PackageCheck,
+  X,
+} from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const container = "mx-auto max-w-7xl px-5 md:px-6";
 
@@ -37,7 +43,22 @@ export default function AboutPage() {
     useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
   const [deliveries, setDeliveries] = useState<PublicDelivery[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<PublicDelivery | null>(null);
+  // Posición de la foto ampliada (null = cerrada)
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const selected = selectedIndex === null ? null : deliveries[selectedIndex] ?? null;
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  function closeViewer() {
+    setSelectedIndex(null);
+  }
+
+  function showOffset(offset: number) {
+    setSelectedIndex((current) =>
+      current === null
+        ? current
+        : (current + offset + deliveries.length) % deliveries.length
+    );
+  }
 
   useEffect(() => {
     async function loadData() {
@@ -54,22 +75,30 @@ export default function AboutPage() {
     loadData();
   }, []);
 
-  // Cerrar la imagen ampliada con Escape
+  // Teclado en la imagen ampliada: Escape cierra, flechas pasan de foto
+  const viewerOpen = selectedIndex !== null;
+
   useEffect(() => {
-    if (!selected) {
+    if (!viewerOpen) {
       return;
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setSelected(null);
+        setSelectedIndex(null);
+      } else if (event.key === "ArrowRight") {
+        showOffset(1);
+      } else if (event.key === "ArrowLeft") {
+        showOffset(-1);
       }
     }
 
     document.addEventListener("keydown", handleKeyDown);
 
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [selected]);
+    // showOffset solo usa setState con función: no necesita ser dependencia
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewerOpen]);
 
   const whatsappUrl = useMemo(() => {
     return getWhatsappUrl(
@@ -149,7 +178,7 @@ export default function AboutPage() {
                 >
                   <button
                     type="button"
-                    onClick={() => setSelected(delivery)}
+                    onClick={() => setSelectedIndex(index)}
                     aria-label="Ampliar imagen de la entrega"
                     className="group relative block w-full overflow-hidden rounded-2xl border border-line bg-surface-2 text-left shadow-sm transition hover:border-brand/40 hover:shadow-xl hover:shadow-slate-200"
                   >
@@ -222,31 +251,79 @@ export default function AboutPage() {
       </section>
 
       {/* ================= IMAGEN AMPLIADA ================= */}
-      {selected && (
+      {selected && selectedIndex !== null && (
         <div
-          className="animate-fade-in fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4"
+          className="animate-fade-in fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/85 p-4"
           role="dialog"
           aria-label="Entrega verificada"
-          onClick={() => setSelected(null)}
+          onClick={closeViewer}
         >
           <button
             type="button"
-            onClick={() => setSelected(null)}
+            onClick={closeViewer}
             aria-label="Cerrar imagen"
-            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-950 shadow-lg"
+            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-950 shadow-lg"
           >
             <X size={20} />
           </button>
 
+          {deliveries.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showOffset(-1);
+                }}
+                aria-label="Entrega anterior"
+                className="absolute left-3 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-slate-950 shadow-lg transition hover:bg-white sm:flex md:left-6"
+              >
+                <ChevronLeft size={24} />
+              </button>
+
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showOffset(1);
+                }}
+                aria-label="Entrega siguiente"
+                className="absolute right-3 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-slate-950 shadow-lg transition hover:bg-white sm:flex md:right-6"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </>
+          )}
+
           <div
             className="max-h-full w-full max-w-3xl overflow-hidden rounded-2xl bg-white"
             onClick={(event) => event.stopPropagation()}
+            onTouchStart={(event) => {
+              const touch = event.touches[0];
+              touchStart.current = { x: touch.clientX, y: touch.clientY };
+            }}
+            onTouchEnd={(event) => {
+              const start = touchStart.current;
+              touchStart.current = null;
+
+              if (!start || deliveries.length < 2) return;
+
+              const touch = event.changedTouches[0];
+              const dx = touch.clientX - start.x;
+              const dy = touch.clientY - start.y;
+
+              // Deslizar a los lados (celular) pasa de foto
+              if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+                showOffset(dx < 0 ? 1 : -1);
+              }
+            }}
           >
             {selected.imageUrl && (
               <img
+                key={selected.id}
                 src={selected.imageUrl}
                 alt={selected.title || "Entrega verificada"}
-                className="max-h-[78vh] w-full bg-slate-100 object-contain"
+                className="animate-fade-in max-h-[74vh] w-full bg-slate-100 object-contain"
               />
             )}
 
@@ -256,13 +333,23 @@ export default function AboutPage() {
                 Entrega verificada
               </span>
 
-              {selected.deliveredAt && (
-                <span className="text-slate-500">
-                  {formatDate(selected.deliveredAt, "long")}
-                </span>
-              )}
+              <span className="flex items-center gap-3 text-slate-500">
+                {selected.deliveredAt && formatDate(selected.deliveredAt, "long")}
+
+                {deliveries.length > 1 && (
+                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+                    {selectedIndex + 1}/{deliveries.length}
+                  </span>
+                )}
+              </span>
             </div>
           </div>
+
+          {deliveries.length > 1 && (
+            <p className="pointer-events-none absolute bottom-4 left-0 right-0 text-center text-xs font-medium text-white/70 sm:hidden">
+              Desliza para ver más entregas
+            </p>
+          )}
         </div>
       )}
 

@@ -94,6 +94,10 @@ export default function ProductMediaGallery({
   // Se aplica directo al elemento para no volver a dibujar todo el componente.
   const zoomRef = useRef<HTMLDivElement>(null);
 
+  // Deslizar con el dedo (celular): la foto sigue al dedo y, si se arrastra
+  // lo suficiente, pasa a la siguiente o a la anterior.
+  const swipe = useRef<{ x: number; y: number; dx: number; horizontal: boolean | null } | null>(null);
+
   // Al elegir un color desde los botones, se muestra la foto de ese color.
   // (No se ejecuta al cargar: al inicio se ve la foto principal del producto.)
   useEffect(() => {
@@ -150,7 +154,48 @@ export default function ProductMediaGallery({
         </span>
 
         <div
-          className={`relative aspect-square ${hasSlides ? "cursor-zoom-in" : ""}`}
+          className={`relative aspect-square touch-pan-y ${hasSlides ? "cursor-zoom-in" : ""}`}
+          onTouchStart={(event) => {
+            if (slides.length < 2) return;
+
+            const touch = event.touches[0];
+            swipe.current = { x: touch.clientX, y: touch.clientY, dx: 0, horizontal: null };
+          }}
+          onTouchMove={(event) => {
+            const state = swipe.current;
+            if (!state || !zoomRef.current) return;
+
+            const touch = event.touches[0];
+            const dx = touch.clientX - state.x;
+            const dy = touch.clientY - state.y;
+
+            // Se decide una sola vez si el gesto es horizontal (foto) o vertical (página)
+            if (state.horizontal === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+              state.horizontal = Math.abs(dx) > Math.abs(dy);
+            }
+
+            if (!state.horizontal) return;
+
+            state.dx = dx;
+            zoomRef.current.style.transition = "none";
+            zoomRef.current.style.transform = `translateX(${dx}px)`;
+          }}
+          onTouchEnd={(event) => {
+            const state = swipe.current;
+            swipe.current = null;
+
+            if (!state?.horizontal || !zoomRef.current) return;
+
+            const width = event.currentTarget.getBoundingClientRect().width;
+
+            if (Math.abs(state.dx) > Math.min(60, width * 0.18)) {
+              goTo(state.dx < 0 ? 1 : -1);
+            } else {
+              // No llegó: la foto vuelve a su lugar
+              zoomRef.current.style.transition = "transform 0.25s ease-out";
+              zoomRef.current.style.transform = "translateX(0)";
+            }
+          }}
           onPointerMove={(event) => {
             if (event.pointerType !== "mouse" || !zoomRef.current) return;
 
