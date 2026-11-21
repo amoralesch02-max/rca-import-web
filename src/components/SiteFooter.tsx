@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import WhatsAppNudge from "@/components/WhatsAppNudge";
 import {
   DEFAULT_STORE_SETTINGS,
   getWhatsappUrl,
@@ -144,7 +145,7 @@ export default function SiteFooter() {
         target="_blank"
         rel="noreferrer"
         aria-label="Escribir por WhatsApp"
-        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-xl shadow-slate-950/30 transition hover:scale-105 hover:bg-green-600"
+        className="wa-wiggle fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-xl shadow-slate-950/30 transition hover:scale-105 hover:bg-green-600"
       >
         <span
           aria-hidden="true"
@@ -152,6 +153,9 @@ export default function SiteFooter() {
         />
         <WhatsAppIcon size={26} className="relative" />
       </a>
+
+      {/* Globito "¿Te ayudamos?" (una vez por visita) */}
+      <WhatsAppNudge href={floatingWhatsappUrl} />
 
       <div className="mx-auto max-w-7xl px-5 py-12 md:px-6">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1.2fr]">

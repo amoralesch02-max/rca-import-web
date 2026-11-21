@@ -243,6 +243,26 @@ html[data-theme="navidad"] a[aria-label="Escribir por WhatsApp"]::after {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='90' viewBox='0 0 84 90'%3E %3Cdefs%3E %3ClinearGradient id='r' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f23a4f'/%3E%3Cstop offset='.55' stop-color='%23d4192d'/%3E%3Cstop offset='1' stop-color='%239c1020'/%3E%3C/linearGradient%3E %3ClinearGradient id='w' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='1' stop-color='%23dbe4f1'/%3E%3C/linearGradient%3E %3CradialGradient id='p' cx='.35' cy='.3' r='.8'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='1' stop-color='%23cdd8ea'/%3E%3C/radialGradient%3E %3C/defs%3E %3Cpath d='M11.9 44.6 C12 30 25 11 42 9 C55 8 64 13 68 24 C63 21 58 24 56 29 C57 32 61.4 31.3 61.4 31.3 A33 33 0 0 0 11.9 44.6 Z' fill='url(%23r)'/%3E %3Cpath d='M14 40 C15 27 24 15 36 11.5' fill='none' stroke='%23ff8a98' stroke-opacity='.7' stroke-width='1.8' stroke-linecap='round'/%3E %3Cpath d='M15.1 47.1 A29 29 0 0 1 60.6 35.8' fill='none' stroke='%238ea3c4' stroke-opacity='.35' stroke-width='11.5' stroke-linecap='round'/%3E %3Cpath d='M15.1 47.1 A29 29 0 0 1 60.6 35.8' fill='none' stroke='url(%23w)' stroke-width='9.5' stroke-linecap='round'/%3E %3Cpath d='M18.3 45.4 A26.8 26.8 0 0 1 56.2 35.3' fill='none' stroke='%23fff' stroke-opacity='.9' stroke-width='2.2' stroke-linecap='round'/%3E %3Ccircle cx='68' cy='24' r='6.2' fill='url(%23p)'/%3E %3Cg fill='%239fb0cc' opacity='.4'%3E%3Ccircle cx='19' cy='44' r='.9'/%3E%3Ccircle cx='26' cy='35.5' r='.9'/%3E%3Ccircle cx='42' cy='30.5' r='.9'/%3E%3Ccircle cx='54' cy='33' r='.9'/%3E%3Ccircle cx='66' cy='22.5' r='.8'/%3E%3Ccircle cx='69.5' cy='26' r='.8'/%3E%3C/g%3E %3C/svg%3E") no-repeat center / 100% 100%;
 }
 
+/* El gorro se balancea un poco más y con un instante de retraso que el botón,
+   como si tuviera peso (gira alrededor del centro del botón). */
+@keyframes nv-hat-sway {
+  0%, 85%, 100% { rotate: 0deg; }
+  87.5% { rotate: -9deg; }
+  90.5% { rotate: 10deg; }
+  93.5% { rotate: -6deg; }
+  96.5% { rotate: 3deg; }
+}
+
+html[data-theme="navidad"] a[aria-label="Escribir por WhatsApp"]::after {
+  transform-origin: 42px 58px;
+  animation: nv-hat-sway 6s ease-in-out 1s infinite;
+}
+
+html[data-theme="navidad"] a[aria-label="Escribir por WhatsApp"]:hover::after,
+html[data-nv-anim="off"] a[aria-label="Escribir por WhatsApp"]::after {
+  animation-play-state: paused;
+}
+
 /* ---------- Nieve cayendo ---------- */
 html[data-theme="navidad"] .nv-flake {
   position: absolute;

@@ -176,6 +176,27 @@ details > summary::-webkit-details-marker {
   animation: wa-pulse 3.2s ease-out infinite;
 }
 
+/* Tambaleo del botón flotante de WhatsApp: cada 6 s se mueve un instante
+   para llamar la atención, y el resto del tiempo queda quieto.
+   Usa "rotate" (no "transform") para no chocar con el zoom al pasar el mouse. */
+@keyframes wa-wiggle {
+  0%, 84%, 100% { rotate: 0deg; }
+  86% { rotate: -16deg; }
+  89% { rotate: 13deg; }
+  92% { rotate: -9deg; }
+  95% { rotate: 5deg; }
+  97.5% { rotate: -2deg; }
+}
+
+.wa-wiggle {
+  animation: wa-wiggle 6s ease-in-out 1s infinite;
+}
+
+/* Al pasar el mouse se queda quieto (para poder hacer clic con calma) */
+.wa-wiggle:hover {
+  animation-play-state: paused;
+}
+
 /* Efecto de "presionar" en botones redondeados */
 [class~="rounded-full"]:not(:disabled):active {
   transform: scale(0.97);
