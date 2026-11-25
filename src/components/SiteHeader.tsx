@@ -334,10 +334,10 @@ export default function SiteHeader() {
           >
             {/* Emblema del logo (sin el texto, que va al lado en grande) */}
             <Image
-              src="/logo-mark.png"
+              src="/logo-mark.webp"
               alt="Logo RCA IMPORT"
-              width={400}
-              height={220}
+              width={240}
+              height={132}
               sizes="96px"
               priority
               className={`w-auto shrink-0 transition-all duration-300 group-hover:scale-105 ${

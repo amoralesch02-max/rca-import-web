@@ -40,17 +40,12 @@ export const DEFAULT_SHARE_IMAGE = {
 };
 
 /**
- * Las fotos de productos pueden pesar varios MB y WhatsApp ignora las
- * imágenes muy pesadas. Las de Supabase se pasan por el optimizador de
- * Next (ya permitido en next.config.ts) para enviarlas livianas.
+ * Foto para la vista previa al compartir. Se usa la original de Supabase
+ * (la optimización de imágenes de Vercel está desactivada en next.config.ts).
  */
 export function getShareImageUrl(src: string) {
   if (!src) {
     return "";
-  }
-
-  if (/^https:\/\/[^/]+\.supabase\.co\/storage\/v1\/object\/public\//.test(src)) {
-    return `/_next/image?url=${encodeURIComponent(src)}&w=1200&q=75`;
   }
 
   return src;

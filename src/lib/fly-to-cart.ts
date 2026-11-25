@@ -12,14 +12,10 @@
 const THUMB_SIZE = 72;
 const DURATION = 700;
 
-/** Versión pequeña de la foto, para que cargue al instante. */
+/** Foto que vuela al carrito (la misma que ya cargó la página). */
 export function getCartThumb(src?: string) {
   if (!src) {
     return "";
-  }
-
-  if (/^https:\/\/[^/]+\.supabase\.co\/storage\/v1\/object\/public\//.test(src)) {
-    return `/_next/image?url=${encodeURIComponent(src)}&w=128&q=75`;
   }
 
   return src;
