@@ -1,3 +1,4 @@
+import { compressImage } from "@/lib/compress-image";
 import { supabase } from "@/lib/supabase";
 
 const STORAGE_BUCKET = "rca-images";
@@ -11,8 +12,8 @@ function cleanFileName(fileName: string) {
     .replace(/-+/g, "-");
 }
 
-export async function uploadImageFile(file: File, folder = "general") {
-  if (!file.type.startsWith("image/")) {
+export async function uploadImageFile(originalFile: File, folder = "general") {
+  if (!originalFile.type.startsWith("image/")) {
     return {
       success: false,
       url: "",
@@ -21,9 +22,23 @@ export async function uploadImageFile(file: File, folder = "general") {
     };
   }
 
-  const maxSize = 10 * 1024 * 1024;
+  if (originalFile.size > 25 * 1024 * 1024) {
+    return {
+      success: false,
+      url: "",
+      path: "",
+      error: "La imagen no debe superar los 25 MB.",
+    };
+  }
 
-  if (file.size > maxSize) {
+  // Se achica y se pasa a WebP antes de subir, para que la web cargue rápido.
+  // Los banners se dejan más grandes porque ocupan todo el ancho.
+  const file = await compressImage(
+    originalFile,
+    folder.startsWith("banners") ? 2000 : 1600
+  );
+
+  if (file.size > 10 * 1024 * 1024) {
     return {
       success: false,
       url: "",
@@ -38,7 +53,9 @@ export async function uploadImageFile(file: File, folder = "general") {
   const { error } = await supabase.storage
     .from(STORAGE_BUCKET)
     .upload(uniqueName, file, {
-      cacheControl: "3600",
+      // Cada archivo tiene un nombre único, así que puede guardarse un año en caché
+      cacheControl: "31536000",
+      contentType: file.type,
       upsert: false,
     });
 
