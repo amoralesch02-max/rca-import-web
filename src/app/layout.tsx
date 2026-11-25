@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import MotionProvider from "@/components/MotionProvider";
+import RouteProgress from "@/components/RouteProgress";
 import ChristmasLayer from "@/components/navidad/ChristmasLayer";
 import ThemeProvider from "@/components/ThemeProvider";
 import { SITE_NAME, buildMetadata, getSiteUrl } from "@/lib/site-metadata";
@@ -53,6 +54,8 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>
+        {/* Barra de carga arriba al cambiar de página */}
+        <RouteProgress />
         <MotionProvider>{children}</MotionProvider>
         <ThemeProvider />
         <ChristmasLayer />

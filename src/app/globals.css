@@ -284,3 +284,15 @@ details > summary::-webkit-details-marker {
   );
   animation: shine-sweep 4s ease-in-out 1.5s infinite;
 }
+
+/* ---------- Transición entre páginas (src/app/template.tsx) ----------
+   Fundido rápido de la página nueva. Solo opacidad: no mueve el header
+   fijo ni el carrito. Con "reducir movimiento" se desactiva (regla de arriba). */
+@keyframes page-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-page-in {
+  animation: page-in 0.25s ease-out;
+}
