@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 /**
- * Página 404. En Navidad aparece el duende ("se perdió en el Polo Norte");
+ * Página 404. En Navidad aparece el pingüino ("se perdió en el Polo Norte");
  * el resto del año, la bolsa de RCA con un signo de pregunta.
  */
 export default function NotFoundContent() {
@@ -53,7 +53,7 @@ export default function NotFoundContent() {
           disponible. Busca lo que necesitas o vuelve al inicio.
         </p>
         <p className="nv-only mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500">
-          Nuestro duende la buscó por todo el taller y no la encontró. Prueba
+          Nuestro pingüino la buscó por todo el Polo Norte y no la encontró. Prueba
           buscando lo que necesitas o vuelve al inicio.
         </p>
 

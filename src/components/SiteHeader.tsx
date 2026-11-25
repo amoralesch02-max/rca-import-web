@@ -163,6 +163,10 @@ export default function SiteHeader() {
   const [bump, setBump] = useState(false);
   const previousCount = useRef(0);
 
+  // Nombre de la tienda: primera palabra en rojo, el resto en azul
+  const [nameFirst, ...nameRestWords] = settings.storeName.trim().split(/\s+/);
+  const nameRest = nameRestWords.join(" ");
+
   // Header compacto al bajar. Se achica pasados 80 px y vuelve a su tamaño
   // solo al llegar arriba del todo. Así no "tiembla": al cambiar de alto, el
   // navegador corrige el scroll unos px y eso no debe volver a cambiarlo.
@@ -325,27 +329,39 @@ export default function SiteHeader() {
         >
           <Link
             href="/"
-            className="group flex min-w-0 items-center gap-3"
+            className="group flex min-w-0 items-center gap-2.5"
             aria-label="Ir al inicio de RCA IMPORT"
           >
-            <div
-              className={`relative shrink-0 overflow-hidden rounded-xl bg-white ring-1 ring-slate-200 transition-all duration-300 group-hover:scale-105 ${
-                compact ? "h-8 w-8" : "h-10 w-10"
+            {/* Emblema del logo (sin el texto, que va al lado en grande) */}
+            <Image
+              src="/logo-mark.png"
+              alt="Logo RCA IMPORT"
+              width={400}
+              height={220}
+              sizes="96px"
+              priority
+              className={`w-auto shrink-0 transition-all duration-300 group-hover:scale-105 ${
+                compact ? "h-8" : "h-10 md:h-11"
               }`}
-            >
-              <Image
-                src="/logo-rca.png"
-                alt="Logo RCA IMPORT"
-                fill
-                sizes="40px"
-                className="object-contain p-1"
-                priority
-              />
-            </div>
+            />
 
-            <p className="truncate text-base font-bold tracking-tight md:text-lg">
-              {settings.storeName}
-            </p>
+            <span className="min-w-0 leading-none">
+              {/* Primera palabra en rojo y el resto en azul, como el logo */}
+              <span className="block truncate text-lg font-extrabold italic tracking-tight md:text-xl">
+                <span className="text-alert">{nameFirst}</span>
+                {nameRest && <span className="text-brand"> {nameRest}</span>}
+              </span>
+
+              {settings.slogan && (
+                <span
+                  className={`hidden overflow-hidden text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-500 transition-all duration-300 min-[380px]:block md:text-[10px] ${
+                    compact ? "mt-0 max-h-0 opacity-0" : "mt-1 max-h-4 opacity-100"
+                  }`}
+                >
+                  {settings.slogan}
+                </span>
+              )}
+            </span>
           </Link>
 
           {/* Navegación escritorio */}

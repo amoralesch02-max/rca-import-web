@@ -516,3 +516,41 @@ html[data-nv-anim="off"] .nv-elf .tw {
     animation: none !important;
   }
 }
+
+/* ---------- Banner de cuenta regresiva (ChristmasBanner.tsx) ---------- */
+@keyframes nv-tick {
+  from {
+    opacity: 0;
+    transform: translateY(-35%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nv-banner .nv-bulb {
+  animation: nv-tw var(--nv-d, 2s) ease-in-out var(--nv-s, 0s) infinite;
+}
+
+.nv-banner-swing {
+  transform-origin: 50% 0;
+  animation: nv-swing var(--nv-d, 4.6s) ease-in-out var(--nv-s, 0s) infinite alternate;
+}
+
+.nv-banner .nv-tick {
+  animation: nv-tick 0.35s ease-out;
+}
+
+/* Se detiene con el botón de nieve (❄) */
+html[data-nv-anim="off"] .nv-banner *,
+html[data-nv-anim="off"] .nv-banner-swing {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nv-banner *,
+  .nv-banner-swing {
+    animation: none !important;
+  }
+}

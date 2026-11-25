@@ -246,7 +246,7 @@ export default function CartDrawer({
         {cart.length === 0 ? (
           /* Carrito vacío */
           <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-            {/* Ilustración: duende en Navidad, bolsa de RCA el resto del año */}
+            {/* Ilustración: pingüino en Navidad, bolsa de RCA el resto del año */}
             <GiftElf className="mx-auto w-24" />
             <ShoppingBagArt className="nv-off h-28 w-28" />
 
@@ -258,8 +258,8 @@ export default function CartDrawer({
               Agrega productos desde el catálogo para verlos aquí.
             </p>
             <p className="nv-only mt-1 text-sm text-slate-500">
-              Nuestro duende está listo para envolver tu regalo. Elige algo
-              del catálogo.
+              Nuestro pingüino ya está listo para llevar tu regalo. Elige
+              algo del catálogo.
             </p>
 
             <Link

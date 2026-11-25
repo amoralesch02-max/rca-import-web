@@ -2,7 +2,7 @@
 
 import CountryFlag from "@/components/CountryFlag";
 import ChristmasBanner from "@/components/navidad/ChristmasBanner";
-import GiftElf from "@/components/navidad/GiftElf";
+import SmallElf from "@/components/navidad/SmallElf";
 import HeroDecorLoader from "@/components/navidad/HeroDecorLoader";
 import HeroCarousel, {
   type HeroCarouselItem,
@@ -278,7 +278,7 @@ export default function HomePage() {
                 </span>
               </span>
 
-              <GiftElf className="pointer-events-none absolute -right-5 -top-4 w-11 sm:-top-9 sm:w-12" />
+              <SmallElf className="pointer-events-none absolute -right-5 -top-4 w-11 sm:-top-9 sm:w-12" />
             </a>
 
             <HeroCarousel items={carouselItems} />

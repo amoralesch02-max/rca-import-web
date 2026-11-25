@@ -197,7 +197,7 @@ export default function CartPage() {
         {cart.length === 0 ? (
           /* ================= CARRITO VACÍO ================= */
           <div className="mt-8 rounded-2xl border border-line bg-white p-10 text-center md:p-16">
-            {/* Ilustración: duende en Navidad, bolsa de RCA el resto del año */}
+            {/* Ilustración: pingüino en Navidad, bolsa de RCA el resto del año */}
             <GiftElf className="mx-auto w-32" />
             <ShoppingBagArt className="nv-off mx-auto h-36 w-36" />
 
@@ -208,8 +208,8 @@ export default function CartPage() {
               consultarlo por WhatsApp con RCA IMPORT.
             </p>
             <p className="nv-only mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-              Nuestro duende está listo para envolver tu regalo. Elige algo del
-              catálogo y arma tu pedido por WhatsApp.
+              Nuestro pingüino ya está listo para llevar tu regalo. Elige algo
+              del catálogo y arma tu pedido por WhatsApp.
             </p>
 
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
