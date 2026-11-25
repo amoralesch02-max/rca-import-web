@@ -29,7 +29,6 @@ import {
 } from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { usePathname, useSearchParams } from "next/navigation";
-import { motion, useScroll, useSpring } from "motion/react";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 type CartItem = {
@@ -196,14 +195,6 @@ export default function SiteHeader() {
       }
     };
   }, []);
-
-  // Barra de progreso de lectura (línea fina al pie del header)
-  const { scrollYProgress } = useScroll();
-  const progress = useSpring(scrollYProgress, {
-    stiffness: 120,
-    damping: 30,
-    restDelta: 0.001,
-  });
 
   // El carrito "rebota" solo cuando se AGREGA un producto
   // (no al cargar la página ni al quitar productos)
@@ -663,12 +654,6 @@ export default function SiteHeader() {
             </div>
           </div>
         )}
-
-        <motion.div
-          aria-hidden="true"
-          style={{ scaleX: progress }}
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] origin-left bg-alert"
-        />
       </header>
 
       <CartDrawer
