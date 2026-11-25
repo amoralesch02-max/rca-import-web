@@ -6,8 +6,6 @@ import {
   getColorHex,
   getProductColors,
   getStartingPrice,
-  getStoragePricing,
-  getProductStorages,
 } from "@/lib/product-options";
 import type { PublicProduct } from "@/lib/supabase-products";
 import { getWhatsappUrl } from "@/lib/store-settings";
@@ -75,15 +73,14 @@ export default function PublicProductCard({
 
   const availableStock = getAvailableStock(product);
   const colors = getProductColors(product);
-  const hasStorages = getProductStorages(product).length > 0;
 
-  // Con capacidades se muestra el precio "Desde"; sin ellas, el precio normal
+  // Precio "Desde" (capacidad más barata). Si esa capacidad tiene oferta,
+  // se muestra su precio normal tachado y el % de descuento.
   const starting = getStartingPrice(product);
-  const pricing = getStoragePricing(product, 0);
-  const showOffer = !hasStorages && pricing.salePrice !== null;
+  const showOffer = starting.salePrice !== null;
 
   const discount = showOffer
-    ? Math.round(((pricing.price - (pricing.salePrice ?? 0)) / pricing.price) * 100)
+    ? Math.round(((starting.price - (starting.salePrice ?? 0)) / starting.price) * 100)
     : null;
 
   const whatsappUrl = getWhatsappUrl(
@@ -190,7 +187,7 @@ export default function PublicProductCard({
 
           {showOffer && (
             <p className="text-xs font-medium text-slate-400 line-through sm:text-sm">
-              S/ {pricing.price}
+              S/ {starting.price}
             </p>
           )}
 

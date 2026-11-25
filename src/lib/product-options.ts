@@ -175,23 +175,38 @@ export function getStoragePricing(
   };
 }
 
-/** Precio "Desde" para las tarjetas */
+/**
+ * Precio "Desde" para las tarjetas.
+ * Toma la capacidad más barata (normalmente la primera) y devuelve también su
+ * precio normal y su oferta, para mostrar el precio tachado y el % de descuento.
+ */
 export function getStartingPrice(product: ProductOptionsSource) {
   const storages = getProductStorages(product);
 
   if (storages.length > 1) {
-    const finals = storages.map((_, index) =>
-      getStoragePricing(product, index).final
-    );
+    const options = storages.map((_, index) => getStoragePricing(product, index));
+    const finals = options.map((option) => option.final);
+    const cheapest = Math.min(...finals);
+
+    // Si dos capacidades cuestan lo mismo, se prefiere la que tiene oferta
+    const chosen =
+      options.find((option) => option.final === cheapest && option.salePrice !== null) ??
+      options.find((option) => option.final === cheapest)!;
 
     return {
-      final: Math.min(...finals),
+      final: cheapest,
+      price: chosen.price,
+      salePrice: chosen.salePrice,
       hasRange: new Set(finals).size > 1,
     };
   }
 
+  const single = getStoragePricing(product, 0);
+
   return {
-    final: getStoragePricing(product, 0).final,
+    final: single.final,
+    price: single.price,
+    salePrice: single.salePrice,
     hasRange: false,
   };
 }
