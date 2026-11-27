@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import MotionProvider from "@/components/MotionProvider";
 import RouteProgress from "@/components/RouteProgress";
+import BlackFridayPopup from "@/components/BlackFridayPopup";
 import ChristmasLayer from "@/components/navidad/ChristmasLayer";
 import ThemeProvider from "@/components/ThemeProvider";
 import { SITE_NAME, buildMetadata, getSiteUrl } from "@/lib/site-metadata";
@@ -56,6 +57,8 @@ export default function RootLayout({
       <body>
         {/* Barra de carga arriba al cambiar de página */}
         <RouteProgress />
+        {/* Pop-up de Black Friday (se activa solo del 27 al 30 de noviembre) */}
+        <BlackFridayPopup />
         <MotionProvider>{children}</MotionProvider>
         <ThemeProvider />
         <ChristmasLayer />

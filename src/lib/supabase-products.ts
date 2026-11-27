@@ -1,3 +1,4 @@
+import { applyCampaign } from "@/lib/campaign";
 import { supabase } from "@/lib/supabase";
 import { type Product } from "@/data/products";
 import {
@@ -166,7 +167,8 @@ export async function getSupabaseProducts() {
     return [];
   }
 
-  return (data as SupabaseProduct[]).map(mapSupabaseProduct);
+  // Para el cliente: con el descuento de campaña si hay una activa (lib/campaign.ts)
+  return (data as SupabaseProduct[]).map(mapSupabaseProduct).map(applyCampaign);
 }
 
 export async function getSupabaseAdminProducts() {
@@ -196,7 +198,8 @@ export async function getSupabaseProductBySlug(slug: string) {
     return null;
   }
 
-  return mapSupabaseProduct(data as SupabaseProduct);
+  // Para el cliente: con el descuento de campaña si hay una activa (lib/campaign.ts)
+  return applyCampaign(mapSupabaseProduct(data as SupabaseProduct));
 }
 
 export async function getSupabaseAdminProductBySlug(slug: string) {

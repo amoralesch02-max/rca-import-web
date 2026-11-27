@@ -167,9 +167,9 @@ export default function SiteHeader() {
   const [nameFirst, ...nameRestWords] = settings.storeName.trim().split(/\s+/);
   const nameRest = nameRestWords.join(" ");
 
-  // Header compacto al bajar. Se achica pasados 80 px y vuelve a su tamaño
-  // solo al llegar arriba del todo. Así no "tiembla": al cambiar de alto, el
-  // navegador corrige el scroll unos px y eso no debe volver a cambiarlo.
+  // Header compacto al bajar: pasados 60 px se oculta el eslogan y se achica
+  // el logo; vuelve al subir cerca del inicio. Solo se animan transformaciones
+  // y opacidad (no alturas), por eso el cambio es suave y no mueve la página.
   const [compact, setCompact] = useState(false);
 
   useEffect(() => {
@@ -179,7 +179,7 @@ export default function SiteHeader() {
       frame = 0;
       const y = window.scrollY;
 
-      setCompact((current) => (current ? y > 0 : y > 80));
+      setCompact((current) => (current ? y > 24 : y > 60));
     }
 
     function handleScroll() {
@@ -290,19 +290,9 @@ export default function SiteHeader() {
         <WholesaleWatcher onChange={setWholesaleView} />
       </Suspense>
 
-      <header
-        data-compact={compact ? "true" : undefined}
-        className={`sticky top-0 z-50 border-b border-line bg-white/95 text-slate-950 transition-shadow duration-300 ${
-          compact ? "shadow-md shadow-slate-200/80" : "shadow-sm shadow-slate-200/60"
-        }`}
-      >
-        {/* Barra superior fina (se pliega cuando el header está compacto) */}
-        <div
-          className={`grid bg-slate-950 text-center text-[11px] font-semibold tracking-wide text-blue-200 transition-[grid-template-rows] duration-300 ease-out ${
-            compact ? "grid-rows-[0fr]" : "grid-rows-[1fr]"
-          }`}
-        >
-          <div className="min-h-0 overflow-hidden">
+      {/* Barra superior fina: va fuera del header fijo, así al bajar se va
+          con la página de forma natural (sin animar su altura) */}
+      <div className="bg-slate-950 text-center text-[11px] font-semibold tracking-wide text-blue-200">
           <p className="nv-off mx-auto max-w-7xl px-4 py-1.5">
             Envíos a todo el Perú · Atención directa por WhatsApp
           </p>
@@ -319,14 +309,15 @@ export default function SiteHeader() {
               className="absolute right-4 top-1/2 hidden -translate-y-1/2 text-sky-100/80 md:block"
             />
           </p>
-          </div>
-        </div>
+      </div>
 
-        <div
-          className={`relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 transition-[padding] duration-300 ease-out md:px-6 ${
-            compact ? "py-2" : "py-3"
-          }`}
-        >
+      <header
+        data-compact={compact ? "true" : undefined}
+        className={`sticky top-0 z-50 border-b border-line bg-white/95 text-slate-950 transition-shadow duration-500 ${
+          compact ? "shadow-md shadow-slate-200/80" : "shadow-sm shadow-slate-200/60"
+        }`}
+      >
+        <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 md:px-6">
           <Link
             href="/"
             className="group flex min-w-0 items-center gap-2.5"
@@ -340,12 +331,20 @@ export default function SiteHeader() {
               height={132}
               sizes="96px"
               priority
-              className={`w-auto shrink-0 transition-all duration-300 group-hover:scale-105 ${
-                compact ? "h-8" : "h-10 md:h-11"
+              className={`h-10 w-auto shrink-0 origin-left transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:h-11 ${
+                compact ? "scale-[0.82]" : "scale-100 group-hover:scale-105"
               }`}
             />
 
-            <span className="min-w-0 leading-none">
+            {/* Nombre: al compactar se corre a la izquierda (lo que se achicó el logo)
+                y baja un poco para quedar centrado sin el eslogan */}
+            <span
+              className={`min-w-0 leading-none transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                compact
+                  ? "-translate-x-[13px] translate-y-[7px] md:-translate-x-[14px]"
+                  : "translate-x-0 translate-y-0"
+              }`}
+            >
               {/* Primera palabra en rojo y el resto en azul, como el logo */}
               <span className="block truncate text-lg font-extrabold italic tracking-tight md:text-xl">
                 <span className="text-alert">{nameFirst}</span>
@@ -354,8 +353,10 @@ export default function SiteHeader() {
 
               {settings.slogan && (
                 <span
-                  className={`hidden overflow-hidden text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-500 transition-all duration-300 min-[380px]:block md:text-[10px] ${
-                    compact ? "mt-0 max-h-0 opacity-0" : "mt-1 max-h-4 opacity-100"
+                  className={`mt-1 hidden text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-500 transition-[opacity,transform,filter] duration-300 ease-out min-[380px]:block md:text-[10px] ${
+                    compact
+                      ? "-translate-y-1 opacity-0 blur-[2px]"
+                      : "translate-y-0 opacity-100 blur-0"
                   }`}
                 >
                   {settings.slogan}

@@ -4,6 +4,7 @@ import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import PublicProductCard from "@/components/PublicProductCard";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
+import { getBestOffer } from "@/lib/product-options";
 import { compareRecommended } from "@/lib/product-order";
 import {
   getSupabaseProducts,
@@ -129,7 +130,8 @@ function CatalogContent() {
     setMinPrice("");
     setMaxPrice("");
     setOnlyAvailable(false);
-    setOnlyDeals(false);
+    // ?ofertas=1 abre el catálogo con "Solo ofertas" marcado (pop-up Black Friday)
+    setOnlyDeals(params.get("ofertas") === "1");
     // Solo debe reaccionar a la dirección y a que los datos terminen de cargar
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [urlKey, loading]);
@@ -250,7 +252,8 @@ function CatalogContent() {
     }
 
     if (onlyDeals) {
-      result = result.filter((product) => Boolean(product.salePrice));
+      // Incluye las ofertas por capacidad (ej. iPhone con oferta en 256GB)
+      result = result.filter((product) => getBestOffer(product) !== null);
     }
 
     if (wholesaleOnly) {

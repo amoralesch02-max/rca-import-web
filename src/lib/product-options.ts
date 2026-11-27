@@ -271,3 +271,32 @@ export function validateProductOptions(
 
   return null;
 }
+
+/**
+ * La mayor oferta del producto, revisando todas sus capacidades.
+ * Devuelve null si ninguna capacidad (ni el precio general) tiene oferta.
+ * Se usa en el filtro "Solo ofertas" y en el pop-up de Black Friday.
+ */
+export function getBestOffer(product: ProductOptionsSource) {
+  const storages = getProductStorages(product);
+  const count = Math.max(storages.length, 1);
+  let best: { percent: number; price: number; salePrice: number } | null = null;
+
+  for (let index = 0; index < count; index += 1) {
+    const pricing = getStoragePricing(product, index);
+
+    if (pricing.salePrice === null || pricing.price <= 0) {
+      continue;
+    }
+
+    const percent = Math.round(
+      ((pricing.price - pricing.salePrice) / pricing.price) * 100
+    );
+
+    if (!best || percent > best.percent) {
+      best = { percent, price: pricing.price, salePrice: pricing.salePrice };
+    }
+  }
+
+  return best;
+}
